@@ -1,0 +1,26 @@
+@(formFbPage: Form[models.FbPage])
+
+@_layout(Array("editfbpage")){
+	<div id="breadcrumb">
+		<a href="@routes.ControlPanel.index()" class="tip-bottom"><i class="icon-home"></i> @Messages("msg.dashboard")</a>
+		<a href="@routes.ControlPanel_Fbpage.list()" class="tip-bottom">@Messages("msg.fbpages")</a>
+		<a href="javascript:;" class="current">@Messages("msg.fbpage.edit")</a>
+	</div>
+	<div class="container-fluid">
+		<div class="row-fluid">
+			<form method="post" action="@routes.ControlPanel_Fbpage.editSubmit(formFbPage("id").value)">
+				<fieldset>
+					<legend>@formFbPage("name").value (<small><a target="_blank" href="@formFbPage("url").value">@formFbPage("id").value</a></small>):</legend>
+						
+					<label>@Messages("msg.fbpage.signature"):</label>
+					<textarea name="signature" rows="6" class="span6">@formFbPage("signature").value</textarea>
+					<span class="help-block"></span>
+					<!-- <span class="help-block">Example block-level help text here.</span> -->
+						
+					<button type="submit" class="btn btn-primary"><i class="icon-ok"></i> @Messages("msg.save")</button>
+					<button type="button" class="btn" onclick="javascript:location.href='@routes.ControlPanel_Fbpage.list()'"><i class="icon-remove"></i> @Messages("msg.cancel")</button>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+}

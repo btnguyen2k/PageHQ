@@ -1,0 +1,33 @@
+app.intro = Login using your Facebook account to manage your fanpages, all in one place.
+
+msg.logout = Logout
+msg.fblogin = Login with Facebook 
+msg.save = Save
+msg.cancel = Cancel
+msg.ok = Ok
+msg.yes = yes
+msg.no = no
+
+msg.dashboard = Dashboard
+msg.fbpages = Facebook Fanpages
+
+msg.fbpost = Post to Fanpage
+msg.fbpost.logs = Logs
+msg.fbpost_status = Post Status
+msg.fbpost.text = Text to post
+msg.fbpost_link = Post Link
+msg.fbpost.url = URL
+msg.fbpost.url_caption = Caption
+msg.fbpost.url_desc = Description
+msg.fbpost_photo = Post Photo
+
+msg.fbpost.start = Posting to fanpage(s)...
+msg.fbpost.end = Done.
+msg.fbpost.ok = ok
+msg.fbpost.error = error
+
+msg.fbpage.edit = Edit Facebook Fanpage
+msg.fbpage.edit.done = Facebook Fanpage has been updated successfully!
+msg.fbpage.name = Page Name
+msg.fbpage.category = Page Category
+msg.fbpage.signature = Signature

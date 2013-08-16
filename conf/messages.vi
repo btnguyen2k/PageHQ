@@ -1,0 +1,5 @@
+app.intro = Login using your Facebook account to manage your fanpages, all in one place.
+
+msg.fblogin = Login with Facebook 
+
+msg.dashboard = Dashboard

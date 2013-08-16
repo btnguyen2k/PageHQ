@@ -1,0 +1,40 @@
+@(msg: String, fbPages: List[models.FbPage])
+
+@_layout(Array("fbpages")){
+	<div id="breadcrumb">
+		<a href="@routes.ControlPanel.index()" class="tip-bottom"><i class="icon-home"></i> @Messages("msg.dashboard")</a>
+		<a href="javascript:;" class="current">@Messages("msg.fbpages")</a>
+	</div>
+	<div class="container-fluid">
+		<div class="row-fluid">
+			<div class="span12 center" style="text-align: center;">
+				@if(msg!=null){
+					<div class="alert alert-success">@msg</div>
+				}
+				<table class="table table-striped table-bordered table-hover">
+					<thead>
+						<tr>
+							<th>@Messages("msg.fbpage.name")</th>
+							<th>@Messages("msg.fbpage.category")</th>
+							<th>@Messages("msg.fbpage.signature")</th>
+							<th>&nbsp;</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for(fbPage <- fbPages){
+							<tr>
+								<td><a target="_blank" href="@fbPage.getUrl()">@fbPage.name</a></td>
+								<td>@fbPage.category</td>
+								<td>
+									<p style="white-space: pre-line; display: block;">@fbPage.signature</p>
+									<p style=" display: block; text-align: right;"><small><a href="@fbPage.getUrlEdit()">Edit</a></small></p>
+								</td>
+								<td style="text-align: center; vertical-align: middle;"><a class="btn btn-mini" href="@fbPage.getUrlPost()">@Messages("msg.fbpost")</a></td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+}

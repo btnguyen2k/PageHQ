@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>@Messages("app.name") | @Messages("app.title")</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Facebook Fanpage Tools">
+        <meta name="keywords" content="fanpage, page, fanpage management, fanpage tool">
+        <meta name="author" content="mypages.com">
+        <link href="@routes.Assets.at("frontend/assets/css/bootstrap.min.css")" rel="stylesheet"/>
+        <link href="@routes.Assets.at("frontend/assets/css/comingsoon.css")" rel="stylesheet"/>
+        <link href="@routes.Assets.at("frontend/assets/css/bootstrap-responsive.min.css")" rel="stylesheet"/>
+        <link href="@routes.Assets.at("images/favicon.png")" rel="icon" type="image/png"/>
+    </head>
+    <body>
+        <div id="fb-root"></div>
+        <div class="wrapper">
+            <div class="comingsoonBlk">
+                <h1>@Messages("app.title")</h1>
+                <p>
+                    @Messages("app.intro")
+                </p>
+                <fb:login-button show-faces="false" onclick="javascript:;" scope="email,publish_stream,manage_pages">@Messages("msg.fblogin")</fb:login-button>
+            </div>
+        </div>
+        <div class="copyright">MyPages.com &copy; 2013.</div>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.10.2.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.cookie.js")"></script>
+        <script type="text/javascript">
+        function _fbRefreshLoginStatus() {
+            FB.getLoginStatus(function(response) {
+                if (response.status == 'connected') {
+                    $.cookie('FB_USER', response.authResponse.userID, { path: '/' });
+                    $.cookie('FB_ACCESS_TOKEN', response.authResponse.accessToken, { path: '/' });
+                    document.location.href = "@routes.ControlPanel.index()";
+                } else {
+                    $.removeCookie('FB_USER');
+                    $.removeCookie('FB_ACCESS_TOKEN');
+                }
+            });
+        }
+        
+        window.fbAsyncInit = function() {
+            // init the FB JS SDK
+            FB.init({
+              appId     : '349906525140419',
+              channelUrl: '@routes.Assets.at("fbchannel.html")',
+              status    : true, // Check Facebook Login status
+              xfbml     : true, // Look for social plugins on the page
+              cookie    : true, // enable cookies to allow the server to access the session
+            });
+            
+            // Additional initialization code such as adding Event Listeners goes here            
+            FB.Event.subscribe('auth.login', function() {
+                _fbRefreshLoginStatus();
+            });
+            
+            _fbRefreshLoginStatus();
+        };
+        (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id; js.async = true;
+            js.src = "//connect.facebook.net/en_US/all.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+        </script>
+    </body>
+</html>

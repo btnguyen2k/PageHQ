@@ -1,0 +1,43 @@
+package compositions;
+
+import java.util.List;
+import java.util.Map;
+
+import models.FbPage;
+
+import org.springframework.social.facebook.api.FacebookProfile;
+
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.Http.Cookie;
+import play.mvc.Result;
+import utils.Constants;
+import utils.CookieUtils;
+import utils.FacebookUtils;
+import bo.MyPagesDao;
+
+public class FbAuthAction extends Action.Simple {
+    public Result call(Http.Context ctx) throws Throwable {
+        List<FbPage> fbPages = null;
+        Cookie cookieFbAccessToken = null;
+        try {
+            cookieFbAccessToken = CookieUtils.getCookie(ctx.request(),
+                    Constants.COOKIE_FB_ACCESS_TOKEN);
+            fbPages = cookieFbAccessToken != null ? FacebookUtils.getFbPages(cookieFbAccessToken
+                    .value()) : null;
+        } catch (Exception e) {
+            fbPages = null;
+        }
+        if (fbPages == null) {
+            return redirect("/");
+        } else {
+            FacebookProfile fbProfile = FacebookUtils.getFbProfile(cookieFbAccessToken.value());
+            String email = fbProfile.getEmail();
+            Map<String, Object> account = MyPagesDao.getAccount(email);
+            if (account == null) {
+                MyPagesDao.createAccount(email);
+            }
+        }
+        return delegate.call(ctx);
+    }
+}

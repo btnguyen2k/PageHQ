@@ -1,0 +1,274 @@
+package controllers;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import models.FbPage;
+import models.FbPostText;
+
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ObjectNode;
+import org.springframework.social.facebook.api.Facebook;
+import org.springframework.social.facebook.api.FacebookLink;
+import org.springframework.social.facebook.api.FacebookProfile;
+
+import play.data.Form;
+import play.i18n.Messages;
+import play.libs.Json;
+import play.mvc.Controller;
+import play.mvc.Http.Cookie;
+import play.mvc.Result;
+import play.mvc.Results;
+import utils.Constants;
+import utils.CookieUtils;
+import utils.DPathUtils;
+import utils.FacebookUtils;
+import utils.JsonUtils;
+import bo.MyPagesDao;
+
+import compositions.FbAuth;
+
+public class ControlPanel_Fbpage extends Controller {
+
+    public final static String URL_PARAM_PAGE_ID = "pid";
+
+    /*
+     * Handles /cp/listFbPages
+     */
+    @SuppressWarnings("unchecked")
+    @FbAuth
+    public static Result list() {
+        Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
+                Constants.COOKIE_FB_ACCESS_TOKEN);
+        List<FbPage> fbPages = cookieFbAccessToken != null ? FacebookUtils
+                .getFbPages(cookieFbAccessToken.value()) : null;
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
+                .getFbProfile(cookieFbAccessToken.value()) : null;
+        if (fbPages != null) {
+            String email = fbProfile.getEmail();
+            for (FbPage fbPage : fbPages) {
+                Map<String, Object> pageData = MyPagesDao.getPage(fbPage.id, email);
+                if (pageData == null) {
+                    MyPagesDao.createPage(fbPage.id, email);
+                } else {
+                    String strPageSettings = DPathUtils.getValue(pageData,
+                            MyPagesDao.COL_PAGE_SETTINGS, String.class);
+                    Map<String, Object> pageSettings = null;
+                    try {
+                        pageSettings = JsonUtils.fromJson(strPageSettings, Map.class);
+                    } catch (Exception e) {
+                        pageSettings = new HashMap<String, Object>();
+                    }
+                    if (!(pageSettings instanceof Map)) {
+                        pageSettings = new HashMap<String, Object>();
+                    }
+                    fbPage.signature = DPathUtils.getValue(pageSettings,
+                            MyPagesDao.PAGE_SETTING_SIGNATURE, String.class);
+                }
+            }
+        }
+        String message = flash("msg");
+        return Results.ok(views.html.Cp.fbpage_list.render(message, fbPages));
+    }
+
+    private final static Form<FbPage> formFbPage = Form.form(FbPage.class);
+
+    /*
+     * Handles GET:/cp/editFbPage?pid=<page_id>
+     */
+    @FbAuth
+    public static Result edit(String pageId) {
+        Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
+                Constants.COOKIE_FB_ACCESS_TOKEN);
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
+                .getFbProfile(cookieFbAccessToken.value()) : null;
+        String email = fbProfile != null ? fbProfile.getEmail() : null;
+        Map<String, Object> pageData = email != null ? MyPagesDao.getPage(pageId, email) : null;
+        if (pageData == null) {
+            return Results.badRequest(views.html.Cp.fbpage_edit.render(null));
+        }
+        FbPage fbPage = FacebookUtils.getFbPage(cookieFbAccessToken.value(), pageId);
+        fbPage.populate(pageData);
+        return Results.ok(views.html.Cp.fbpage_edit.render(formFbPage.fill(fbPage)));
+    }
+
+    /*
+     * Handles POST:/cp/editFbPage?pid=<page_id>
+     */
+    @FbAuth
+    public static Result editSubmit(String pageId) {
+        Form<FbPage> filledForm = formFbPage.bindFromRequest();
+
+        Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
+                Constants.COOKIE_FB_ACCESS_TOKEN);
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
+                .getFbProfile(cookieFbAccessToken.value()) : null;
+        String email = fbProfile != null ? fbProfile.getEmail() : null;
+        Map<String, Object> pageData = email != null ? MyPagesDao.getPage(pageId, email) : null;
+        if (pageData == null) {
+            return Results.badRequest(views.html.Cp.fbpage_edit.render(null));
+        }
+
+        if (filledForm.hasErrors()) {
+            return Results.badRequest(views.html.Cp.fbpage_edit.render(filledForm));
+        } else {
+            String signature = filledForm.get().signature;
+            signature = signature != null ? signature.trim() : "";
+            MyPagesDao.updatePageSignature(pageId, email, signature);
+            Controller.flash("msg", Messages.get("msg.fbpage.edit.done"));
+            return Results.redirect(controllers.routes.ControlPanel_Fbpage.list());
+        }
+    }
+
+    private final static Form<FbPostText> formFbPostText = Form.form(FbPostText.class);
+
+    /*
+     * Handles GET:/cp/postFbPage?pid=<page_id>
+     */
+    @FbAuth
+    public static Result post(String pageId) {
+        Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
+                Constants.COOKIE_FB_ACCESS_TOKEN);
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
+                .getFbProfile(cookieFbAccessToken.value()) : null;
+        String email = fbProfile != null ? fbProfile.getEmail() : null;
+        if (StringUtils.isBlank(email)) {
+            return Results.badRequest(views.html.Cp.fbpage_post.render(null, null, null));
+        }
+        FbPage fbPage = null;
+        if (!StringUtils.isBlank(pageId)) {
+            Map<String, Object> pageData = email != null ? MyPagesDao.getPage(pageId, email) : null;
+            if (pageData == null) {
+                return Results.badRequest(views.html.Cp.fbpage_post.render(null, null, null));
+            }
+            fbPage = FacebookUtils.getFbPage(cookieFbAccessToken.value(), pageId);
+            fbPage.populate(pageData);
+        }
+        FbPostText fbPostText = new FbPostText();
+        fbPostText.pages = new ArrayList<String>();
+        if (fbPage != null) {
+            fbPostText.pages.add(fbPage.id);
+        }
+        List<FbPage> fbPages = FacebookUtils.getFbPages(cookieFbAccessToken.value());
+        return Results.ok(views.html.Cp.fbpage_post.render(formFbPostText.fill(fbPostText),
+                fbPages, null));
+    }
+
+    /*
+     * Handles POST:/cp/postLink
+     */
+    @SuppressWarnings("unchecked")
+    public static Result postLink() {
+        try {
+            JsonNode jsonNode = Controller.request().body().asJson();
+            Map<String, Object> postData = null;
+            try {
+                postData = JsonUtils.fromJson(jsonNode.toString(), Map.class);
+            } catch (Exception e) {
+                postData = new HashMap<String, Object>();
+            }
+            if (!(postData instanceof Map)) {
+                return jsonResponse(400, "Expect input to be a map!");
+            }
+            String url = DPathUtils.getValue(postData, "url", String.class);
+            if (!StringUtils.isBlank(url)) {
+
+            }
+            String urlCaption = DPathUtils.getValue(postData, "url_caption", String.class);
+            String urlDesc = DPathUtils.getValue(postData, "url_description", String.class);
+            String pageId = DPathUtils.getValue(postData, "page", String.class);
+            Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
+                    Constants.COOKIE_FB_ACCESS_TOKEN);
+            String fbAccessToken = cookieFbAccessToken != null ? cookieFbAccessToken.value() : null;
+            FacebookProfile fbProfile = fbAccessToken != null ? FacebookUtils
+                    .getFbProfile(cookieFbAccessToken.value()) : null;
+            String email = fbProfile != null ? fbProfile.getEmail() : null;
+            FbPage fbPage = fbAccessToken != null ? FacebookUtils.getFbPage(
+                    cookieFbAccessToken.value(), pageId) : null;
+            if (fbPage == null) {
+                return jsonResponse(400, "Invalid page or your Facebook session has expired!");
+            }
+            Map<String, Object> pageData = MyPagesDao.getPage(pageId, email);
+            if (pageData != null) {
+                fbPage.populate(pageData);
+            }
+            String signature = fbPage.signature;
+            if (!StringUtils.isBlank(signature)) {
+                signature = "\r\n" + signature;
+            } else {
+                signature = "";
+            }
+            if (StringUtils.isBlank(urlDesc)) {
+                urlDesc = "";
+            }
+            FacebookLink facebookLink = new FacebookLink(url.trim(), null,
+                    urlCaption != null ? urlCaption.trim() : null, null);
+            Facebook facebook = FacebookUtils.getFacebook(fbAccessToken);
+            String feedId = facebook.pageOperations().post(pageId, urlDesc.trim() + signature,
+                    facebookLink);
+            return jsonResponse(200, feedId);
+        } catch (Exception e) {
+            return jsonResponse(500, e.getClass() + "/" + e.getMessage());
+        }
+    }
+
+    /*
+     * Handles POST:/cp/postText
+     */
+    @SuppressWarnings("unchecked")
+    public static Result postText() {
+        try {
+            JsonNode jsonNode = Controller.request().body().asJson();
+            Map<String, Object> postData = null;
+            try {
+                postData = JsonUtils.fromJson(jsonNode.toString(), Map.class);
+            } catch (Exception e) {
+                postData = new HashMap<String, Object>();
+            }
+            if (!(postData instanceof Map)) {
+                return jsonResponse(400, "Expect input to be a map!");
+            }
+            String text = DPathUtils.getValue(postData, "text", String.class);
+            String pageId = DPathUtils.getValue(postData, "page", String.class);
+            if (StringUtils.isBlank(text)) {
+                return jsonResponse(400, "No text to post!");
+            }
+            Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
+                    Constants.COOKIE_FB_ACCESS_TOKEN);
+            String fbAccessToken = cookieFbAccessToken != null ? cookieFbAccessToken.value() : null;
+            FacebookProfile fbProfile = fbAccessToken != null ? FacebookUtils
+                    .getFbProfile(cookieFbAccessToken.value()) : null;
+            String email = fbProfile != null ? fbProfile.getEmail() : null;
+            FbPage fbPage = fbAccessToken != null ? FacebookUtils.getFbPage(
+                    cookieFbAccessToken.value(), pageId) : null;
+            if (fbPage == null) {
+                return jsonResponse(400, "Invalid page or your Facebook session has expired!");
+            }
+            Map<String, Object> pageData = MyPagesDao.getPage(pageId, email);
+            if (pageData != null) {
+                fbPage.populate(pageData);
+            }
+            String signature = fbPage.signature;
+            if (!StringUtils.isBlank(signature)) {
+                signature = "\r\n" + signature;
+            } else {
+                signature = "";
+            }
+            Facebook facebook = FacebookUtils.getFacebook(fbAccessToken);
+            String feedId = facebook.pageOperations().post(pageId, text + signature);
+            return jsonResponse(200, feedId);
+        } catch (Exception e) {
+            return jsonResponse(500, e.getClass() + "/" + e.getMessage());
+        }
+    }
+
+    private static Result jsonResponse(int status, Object message) {
+        ObjectNode result = Json.newObject();
+        result.put("status", status);
+        result.put("message", Json.toJson(message));
+        return Controller.ok(result);
+    }
+}
