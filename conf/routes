@@ -10,6 +10,7 @@ POST    /cp/editFbPage              controllers.ControlPanel_Fbpage.editSubmit(p
 GET     /cp/postFbPage              controllers.ControlPanel_Fbpage.post(pid: String ?= null)
 POST    /cp/ajax_postText           controllers.ControlPanel_Fbpage.postText()
 POST    /cp/ajax_postLink           controllers.ControlPanel_Fbpage.postLink()
+POST    /cp/ajax_postPhoto          controllers.ControlPanel_Fbpage.postPhoto()
 GET     /cp/                        controllers.ControlPanel.index()
 GET     /cp                         controllers.ControlPanel.index()
 

@@ -1,6 +1,9 @@
 @(formFbPostText: Form[models.FbPostText], fbPages: List[models.FbPage], errorMsg: String = null)
 
-@_layout(Array("fbpost")){
+@_layout(Array("fbpost")
+	,Array("cp/jquery-upload/js/vendor/jquery.ui.widget.js", "cp/jquery-upload/js/jquery.iframe-transport.js", "cp/jquery-upload/js/jquery.fileupload.js")
+	,Array()
+){
 	<div id="breadcrumb">
 		<a href="@routes.ControlPanel.index()" class="tip-bottom"><i class="icon-home"></i> @Messages("msg.dashboard")</a>
 		<a href="@routes.ControlPanel_Fbpage.list()" class="tip-bottom">@Messages("msg.fbpages")</a>
@@ -8,9 +11,99 @@
 	</div>
 	<div class="container-fluid">
 		<div class="row-fluid">
-			<style type="text/css">.mylabel {font-weight: bold;}</style>
-			<form style="margin-top: -30px; padding-top: 0px;">
+			<style type="text/css">.mylabel{font-weight: bold;} .bar{height: 18px; background: green; font-weight: bold; color: white;}</style>
+			<!-- <form style="margin-top: -30px; padding-top: 0px;"> -->
+			<div style="margin-top: -30px; padding-top: 0px;">
 				<script type="text/javascript">
+				var _UPLOADING = false;
+				var _CURRENT_PHOTO = null;
+			    $(document).ready(function(){
+			    	//change input[type=file] style
+			    	var wrapper = $('<div/>').css({height:0,width:0,'overflow':'hidden'});
+			    	var fileInput = $('#_fbpost_photo').wrap(wrapper);
+			    	$('#_fbpost_photo_btn').click(function(){
+			    	    fileInput.click();
+			    	}).show();
+			    	
+			    	//init fileupload plugin
+			    	$('#_fbpost_photo').fileupload({
+						dataType        : 'json',
+						multipart       : true,
+						formData        : function() {
+							var _valuePageIds = [];
+							@for(fbPage <- fbPages) {
+								if ( $('#pages_@fbPage.id').prop('checked') ) {
+									_valuePageIds.push('@fbPage.id');
+								}
+							}
+							var _valueCaption = $('#_fbpost_photo_caption').val();
+							return [{name:"pages", value:_valuePageIds}, {name:"caption", value:_valueCaption}];
+						},
+						url             : '@routes.ControlPanel_Fbpage.postPhoto()',
+					    type            : 'POST',
+					    replaceFileInput: false,
+					    done: function (e, data) {
+					        $('#_fbpost_photo_btn').text('@Messages("msg.fbpost.choosePhoto")').attr('class', 'btn');
+					        _CURRENT_PHOTO = null;
+					        _UPLOADING = false;
+					        
+					        var _data = data.result;
+					        if ( _data.status == 200 ) {
+					        	var _status = $('#_fbpost_status').val();
+					        	_status += '@Messages("msg.fbpost.ok")';
+					        	$('#_fbpost_status').val(_status);
+					        } else {
+					        	var _status = $('#_fbpost_status').val();
+					        	_status += '\r\n' + '...@Messages("msg.fbpost.error"): ['+_data.status+'] '+_data.message;
+					        	$('#_fbpost_status').val(_status);
+							}
+							document.getElementById('_fbfrm_photo').reset();
+					    },
+					    fail: function (e, data) {
+					    	$('#_fbpost_photo_btn').text('@Messages("msg.fbpost.choosePhoto")').attr('class', 'btn');
+					        _CURRENT_PHOTO = null;
+					        _UPLOADING = false;
+					        
+					        var _status = $('#_fbpost_status').val();
+					        _status += '\r\n' + '...@Messages("msg.fbpost.error"): ['+data.textStatus+']';
+							$('#_fbpost_status').val(_status);
+							document.getElementById('_fbfrm_photo').reset();
+					    },
+					    progressall: function (e, data) {
+						    var progress = parseInt(data.loaded / data.total * 100, 10);
+						    $('#_fbupload_progress .bar').css('width', progress + '%').html(progress + '%');
+						    if ( progress >= 100.0 ) {
+						    	var _status = '@Messages("msg.fbpost.uploading")@Messages("msg.fbpost.ok")';
+						    	_status += '\r\n@Messages("msg.fbpost.start")';
+								$('#_fbpost_status').val(_status);
+						    }
+						},
+						add: function (e, data) {
+							_CURRENT_PHOTO = data;
+							var _file = data.files[0];
+							var _txt = _file.name + ' ('+_file.size+' bytes)';
+							$('#_fbpost_photo_btn').text(_txt).attr('class', 'btn btn-info');
+					    },
+					});
+			    });
+			    
+				function postPhoto() {
+					if ( _UPLOADING ) {
+						var _status = '@Messages("error.fbpost.uploading")';
+						$('#_fbpost_status').val(_status);
+					} else {				
+						if ( _CURRENT_PHOTO != null ) {
+							var _status = '@Messages("msg.fbpost.uploading")';
+							$('#_fbpost_status').val(_status);
+							$('#_fbupload_progress .bar').css('width', '0%').html('');
+							_UPLOADING = true;
+							_CURRENT_PHOTO.submit();
+						} else {
+							var _status = '@Messages("error.fbpost.nofile")';
+							$('#_fbpost_status').val(_status);
+						}
+					}
+				}
 				function postLink() {
 					var _url = $('#_fbpost_url').val().trim();
 					var _urlCaption = $('#_fbpost_url_caption').val().trim();
@@ -125,7 +218,23 @@
 									<button type="button" class="btn" onclick="javascript:location.href='@routes.ControlPanel_Fbpage.list()'"><i class="icon-remove"></i> @Messages("msg.cancel")</button>
 								</div>
 								<div id="tab_post_photo" class="tab-pane">
-									Comming soon!
+									<form method="post" enctype="multipart/form-data" id="_fbfrm_photo">
+										<label class="mylabel">@Messages("msg.fbpost.photo") *:</label>
+										<div id="_fbpost_photo_btn" class="btn">@Messages("msg.fbpost.choosePhoto")</div>
+										<input id="_fbpost_photo" type="file" name="photo" required="required" accept="image/*">
+										<span class="help-block">@Messages("msg.fbpost.photo.info")</span>
+										
+										<label class="mylabel">@Messages("msg.fbpost.photo_caption"):</label>
+										<textarea name="photoCaption" rows="4" class="span12" id="_fbpost_photo_caption"></textarea>
+										<span class="help-block"></span>
+										
+										<div id="_fbupload_progress" style="margin-bottom: 4px;">
+											<div class="bar" style="width: 0%;"></div>
+										</div>
+										
+										<button type="button" class="btn btn-primary" onclick="javascript:postPhoto();"><i class="icon-upload"></i> @Messages("msg.fbpost")</button>
+										<button type="button" class="btn" onclick="javascript:location.href='@routes.ControlPanel_Fbpage.list()'"><i class="icon-remove"></i> @Messages("msg.cancel")</button>
+									</form>
 								</div>
 							</div>
 						</div>
@@ -144,11 +253,9 @@
 							<textarea name="text" rows="@fbPages.size()+2" class="span12" id="_fbpost_status" readonly="readonly"></textarea>
 						</div>
 					</div>
-					<div class="row-fluid">
-						
-					</div>
 				</fieldset>
-			</form>
+			<!-- </form> -->
+			</div>
 		</div>
 	</div>
 }

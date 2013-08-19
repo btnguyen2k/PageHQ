@@ -20,11 +20,19 @@ msg.fbpost.url = URL
 msg.fbpost.url_caption = Caption
 msg.fbpost.url_desc = Description
 msg.fbpost_photo = Post Photo
+msg.fbpost.photo = Photo
+msg.fbpost.photo.info = Max size: 5Mb
+msg.fbpost.choosePhoto = Choose Photo
+msg.fbpost.photo_caption = Caption
 
 msg.fbpost.start = Posting to fanpage(s)...
+msg.fbpost.uploading = Uploading file(s) to server...
 msg.fbpost.end = Done.
 msg.fbpost.ok = ok
 msg.fbpost.error = error
+error.fbpost.nofile = Error: no file selected to upload!
+error.fbpost.uploading = Error: there is a uploading in progress!
+error.fbpost.invalid_photo = Error: invalid photo type!
 
 msg.fbpage.edit = Edit Facebook Fanpage
 msg.fbpage.edit.done = Facebook Fanpage has been updated successfully!

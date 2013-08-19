@@ -1,5 +1,6 @@
 package controllers;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,8 @@ import models.FbPostText;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.social.facebook.api.Facebook;
 import org.springframework.social.facebook.api.FacebookLink;
 import org.springframework.social.facebook.api.FacebookProfile;
@@ -18,8 +21,11 @@ import org.springframework.social.facebook.api.FacebookProfile;
 import play.data.Form;
 import play.i18n.Messages;
 import play.libs.Json;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http.Cookie;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import play.mvc.Results;
 import utils.Constants;
@@ -158,7 +164,71 @@ public class ControlPanel_Fbpage extends Controller {
     }
 
     /*
-     * Handles POST:/cp/postLink
+     * Handles POST:/cp/ajax_postPhoto
+     */
+    @BodyParser.Of(value = BodyParser.MultipartFormData.class, maxLength = 5 * 1024 * 1024)
+    public static Result postPhoto() {
+        try {
+            MultipartFormData body = Controller.request().body().asMultipartFormData();
+            FilePart file = body.getFile("photo");
+            if (file == null) {
+                return jsonResponse(400, Messages.get("error.fbpost.nofile"));
+            }
+            if (!StringUtils.startsWithIgnoreCase(file.getContentType(), "image/")) {
+                return jsonResponse(400, Messages.get("error.fbpost.invalid_photo"));
+            }
+            File physicalFile = file.getFile();
+            if (physicalFile.length() < 1) {
+                return jsonResponse(400, Messages.get("error.fbpost.invalid_photo"));
+            }
+
+            Map<String, String[]> formData = body.asFormUrlEncoded();
+            String[] temp = formData.get("pages");
+            String[] pageIds = temp != null && temp.length > 0 ? temp[0].split("[\\s+,]+") : null;
+            if (pageIds != null && pageIds.length > 0) {
+                temp = formData.get("caption");
+                String caption = temp != null && temp.length > 0 ? temp[0].trim() : "";
+
+                Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
+                        Constants.COOKIE_FB_ACCESS_TOKEN);
+                String fbAccessToken = cookieFbAccessToken != null ? cookieFbAccessToken.value()
+                        : null;
+
+                Facebook facebook = FacebookUtils.getFacebook(fbAccessToken);
+                FacebookProfile fbProfile = fbAccessToken != null ? facebook.userOperations()
+                        .getUserProfile() : null;
+                String email = fbProfile != null ? fbProfile.getEmail() : null;
+
+                if (facebook != null && email != null) {
+                    for (String pageId : pageIds) {
+                        FbPage fbPage = FacebookUtils.getFbPage(fbAccessToken, pageId);
+                        if (fbPage != null) {
+                            Map<String, Object> pageData = MyPagesDao.getPage(pageId, email);
+                            if (pageData != null) {
+                                fbPage.populate(pageData);
+                            }
+                            String signature = fbPage.signature;
+                            if (!StringUtils.isBlank(signature)) {
+                                signature = "\r\n" + signature;
+                            } else {
+                                signature = "";
+                            }
+
+                            Resource facebookPhoto = new FileSystemResource(physicalFile);
+                            facebook.pageOperations().postPhoto(pageId, pageId, facebookPhoto,
+                                    caption + signature);
+                        }
+                    }
+                }
+            }
+            return jsonResponse(200, "");
+        } catch (Exception e) {
+            return jsonResponse(500, e.getClass() + "/" + e.getMessage());
+        }
+    }
+
+    /*
+     * Handles POST:/cp/ajax_postLink
      */
     @SuppressWarnings("unchecked")
     public static Result postLink() {
@@ -216,7 +286,7 @@ public class ControlPanel_Fbpage extends Controller {
     }
 
     /*
-     * Handles POST:/cp/postText
+     * Handles POST:/cp/ajax_postText
      */
     @SuppressWarnings("unchecked")
     public static Result postText() {
