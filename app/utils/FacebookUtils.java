@@ -16,6 +16,8 @@ import org.springframework.social.facebook.api.impl.FacebookTemplate;
 
 import play.mvc.Controller;
 
+import com.github.ddth.plommon.utils.SessionUtils;
+
 /**
  * Facebook-related utilities.
  * 
