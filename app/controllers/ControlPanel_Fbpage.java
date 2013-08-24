@@ -9,6 +9,8 @@ import java.util.Map;
 import models.FbPage;
 import models.FbPostText;
 
+import com.github.ddth.plommon.utils.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
@@ -30,9 +32,7 @@ import play.mvc.Result;
 import play.mvc.Results;
 import utils.Constants;
 import utils.CookieUtils;
-import utils.DPathUtils;
 import utils.FacebookUtils;
-import utils.JsonUtils;
 import bo.MyPagesDao;
 
 import compositions.FbAuth;
@@ -64,7 +64,7 @@ public class ControlPanel_Fbpage extends Controller {
                             MyPagesDao.COL_PAGE_SETTINGS, String.class);
                     Map<String, Object> pageSettings = null;
                     try {
-                        pageSettings = JsonUtils.fromJson(strPageSettings, Map.class);
+                        pageSettings = JsonUtils.fromJsonString(strPageSettings, Map.class);
                     } catch (Exception e) {
                         pageSettings = new HashMap<String, Object>();
                     }
@@ -236,7 +236,7 @@ public class ControlPanel_Fbpage extends Controller {
             JsonNode jsonNode = Controller.request().body().asJson();
             Map<String, Object> postData = null;
             try {
-                postData = JsonUtils.fromJson(jsonNode.toString(), Map.class);
+                postData = JsonUtils.fromJsonString(jsonNode.toString(), Map.class);
             } catch (Exception e) {
                 postData = new HashMap<String, Object>();
             }
@@ -294,7 +294,7 @@ public class ControlPanel_Fbpage extends Controller {
             JsonNode jsonNode = Controller.request().body().asJson();
             Map<String, Object> postData = null;
             try {
-                postData = JsonUtils.fromJson(jsonNode.toString(), Map.class);
+                postData = JsonUtils.fromJsonString(jsonNode.toString(), Map.class);
             } catch (Exception e) {
                 postData = new HashMap<String, Object>();
             }

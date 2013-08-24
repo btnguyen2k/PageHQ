@@ -8,6 +8,8 @@ msg.ok = Ok
 msg.yes = yes
 msg.no = no
 
+msg.copyright = Facebook Fanpage Tools. Brought to you by {0}
+
 msg.dashboard = Dashboard
 msg.fbpages = Facebook Fanpages
 

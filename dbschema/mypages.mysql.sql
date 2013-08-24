@@ -18,3 +18,4 @@ CREATE TABLE mypages_page (
 	psettings						TEXT,
 	PRIMARY KEY (pid, padmin_email)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+

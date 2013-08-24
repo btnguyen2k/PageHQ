@@ -11,12 +11,12 @@
     <link rel="stylesheet" href="@routes.Assets.at("cp/themes/style/delta.grey.css")"/>
     <link href="@routes.Assets.at("images/favicon.png")" rel="icon" type="image/png"/>
     @for(css <- customCss){
-	    <link rel="stylesheet" href="@routes.Assets.at(css)" />	
+    <link rel="stylesheet" href="@routes.Assets.at(css)" />
     }
     <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.10.2.min.js")"></script>
 </head>
 <body>
-	<div id="fb-root"></div>
+<div id="fb-root"></div>
     <br/>
     <div id="sidebar"> 
         <h1 style="text-align: center; color: white; text-shadow: 2px 2px 2px rgba(200,200,200,.4); -webkit-transition: all .2s linear; -moz-transition: all .2s linear; transition: all .2s linear;">CPanel</h1>  
@@ -28,11 +28,11 @@
     </div>
     <div id="mainBody">
         <h1>@if(actives.contains("dashboard")){@Messages("msg.dashboard")}
-        	@if(actives.contains("fbpages")){@Messages("msg.fbpages")}
-        	@if(actives.contains("editfbpage")){@Messages("msg.fbpage.edit")}
-        	@if(actives.contains("fbpost")){@Messages("msg.fbpost")}
+        @if(actives.contains("fbpages")){@Messages("msg.fbpages")}
+        @if(actives.contains("editfbpage")){@Messages("msg.fbpage.edit")}
+        @if(actives.contains("fbpost")){@Messages("msg.fbpost")}
             <div class="pull-right">
-            	<a class="btn btn-large btn-info" title="@Messages("msg.dashboard")" href="@routes.ControlPanel.index()"><i class="icon-home"></i></a>
+            <a class="btn btn-large btn-info" title="@Messages("msg.dashboard")" href="@routes.ControlPanel.index()"><i class="icon-home"></i></a>
                 <a class="btn btn-large" title="@Messages("msg.fbpages")" href="@routes.ControlPanel_Fbpage.list()"><i class="icon-th-list"></i></a>
                 <a class="btn btn-large" title="@Messages("msg.fbpost")" href="@routes.ControlPanel_Fbpage.post()"><i class="icon-file"></i></a>
                 <!--
@@ -47,10 +47,16 @@
             </div>
         </h1>
         @content
+        <div class="row-fluid">
+            <div id="footer" class="span12">
+            	<p></p>
+            	@Html(Messages("msg.copyright", "<strong>"+play.Play.application().configuration().getString("app.fullname")+"</strong>")).
+            </div>
+        </div>
     </div>
     <script type="text/javascript" src="@routes.Assets.at("cp/themes/js/bootstrap.min.js")"></script>    
     <script type="text/javascript" src="@routes.Assets.at("cp/themes/js/jquery.ui.custom.js")"></script>
-	<script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.cookie.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.cookie.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("cp/themes/js/delta.js")"></script>
     @for(js <- customJs){<script type="text/javascript" src="@routes.Assets.at(js)"></script>}
     <script type="text/javascript">
@@ -70,7 +76,7 @@
         window.fbAsyncInit = function() {
             // init the FB JS SDK
             FB.init({
-              appId     : '349906525140419',
+              appId     : '@play.Play.application().configuration().getString("fb.appId")',
               channelUrl: '@routes.Assets.at("fbchannel.html")',
               status    : true, // Check Facebook Login status
               xfbml     : true, // Look for social plugins on the page

@@ -5,10 +5,10 @@ import java.util.Map;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import utils.DPathUtils;
-import utils.JsonUtils;
 import bo.MyPagesDao;
 import controllers.routes;
+
+import com.github.ddth.plommon.utils.*;
 
 public class FbPage {
     public String id;
@@ -33,7 +33,7 @@ public class FbPage {
                 String.class);
         Map<String, Object> pageSettings = null;
         try {
-            pageSettings = JsonUtils.fromJson(strPageSettings, Map.class);
+            pageSettings = JsonUtils.fromJsonString(strPageSettings, Map.class);
         } catch (Exception e) {
             pageSettings = new HashMap<String, Object>();
         }

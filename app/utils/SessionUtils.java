@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.codehaus.jackson.JsonNode;
 
+import com.github.ddth.plommon.utils.*;
+
 import play.libs.Json;
 import play.mvc.Controller;
 
@@ -45,7 +47,7 @@ public class SessionUtils {
     public static void setSession(String key, Object value, long ttl) {
         Map<String, Object> sEntry = new HashMap<String, Object>();
         sEntry.put("value", value);
-        if (ttl > 0) {
+        if (ttl > 0) {  
             sEntry.put("expiry", System.currentTimeMillis() + ttl * 1000);
         }
         Controller.session(key, Json.toJson(sEntry).asText());

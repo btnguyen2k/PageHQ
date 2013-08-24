@@ -9,8 +9,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import play.cache.Cache;
 import play.db.DB;
-import utils.DPathUtils;
-import utils.JsonUtils;
+
+import com.github.ddth.plommon.utils.DPathUtils;
+import com.github.ddth.plommon.utils.JsonUtils;
 
 public class MyPagesDao {
 
@@ -115,7 +116,7 @@ public class MyPagesDao {
                     String.class);
             Map<String, Object> pageSettings = null;
             try {
-                pageSettings = JsonUtils.fromJson(strPageSettings, Map.class);
+                pageSettings = JsonUtils.fromJsonString(strPageSettings, Map.class);
             } catch (Exception e) {
                 pageSettings = new HashMap<String, Object>();
             }
@@ -123,7 +124,7 @@ public class MyPagesDao {
                 pageSettings = new HashMap<String, Object>();
             }
             DPathUtils.setValue(pageSettings, PAGE_SETTING_SIGNATURE, signature);
-            pageData.put(COL_PAGE_SETTINGS, JsonUtils.toJson(pageSettings));
+            pageData.put(COL_PAGE_SETTINGS, JsonUtils.toJsonString(pageSettings));
             updatePage(pageData);
         }
     }
