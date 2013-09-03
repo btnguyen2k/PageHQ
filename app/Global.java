@@ -1,39 +1,30 @@
-import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 import play.Application;
 import play.GlobalSettings;
-import akka.actor.UntypedActor;
+import play.libs.Akka;
+import scala.concurrent.duration.Duration;
+import actors.FeedDbTableActor;
+import akka.actor.ActorRef;
+import akka.actor.Props;
 
 public class Global extends GlobalSettings {
 
-    static class MyActor extends UntypedActor {
-        @Override
-        public void onReceive(Object msg) throws Exception {
-            // System.out.println(msg);
-        }
-    }
+	@Override
+	public void onStart(Application app) {
+		super.onStart(app);
+		ActorRef feedDbTableACtor = Akka.system().actorOf(
+				new Props(FeedDbTableActor.class));
+		Akka.system()
+				.scheduler()
+				.schedule(Duration.create(10, TimeUnit.SECONDS),
+						Duration.create(300, TimeUnit.SECONDS),
+						feedDbTableACtor, "", Akka.system().dispatcher());
+	}
 
-    @Override
-    public void onStart(Application app) {
-        super.onStart(app);
-        // System.out.println("Start: " + app);
-        // ActorRef myActor = Akka.system().actorOf(new Props(MyActor.class));
-        // Akka.system()
-        // .scheduler()
-        // .schedule(Duration.create(0, TimeUnit.MILLISECONDS),
-        // Duration.create(10, TimeUnit.SECONDS), myActor, "tick",
-        // Akka.system().dispatcher());
-    }
+	@Override
+	public void onStop(Application app) {
+		super.onStop(app);
+	}
 
-    @Override
-    public void onStop(Application app) {
-        super.onStop(app);
-        // System.out.println("Stop: " + app);
-    }
-
-    public static void main(String[] args) {
-        Calendar cal = Calendar.getInstance();
-        int weeks = cal.get(Calendar.WEEK_OF_YEAR);
-        System.out.println(weeks);
-    }
 }

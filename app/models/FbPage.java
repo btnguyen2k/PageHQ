@@ -6,11 +6,13 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import bo.MyPagesDao;
+
+import com.github.ddth.plommon.utils.DPathUtils;
+import com.github.ddth.plommon.utils.JsonUtils;
+
 import controllers.routes;
 
-import com.github.ddth.plommon.utils.*;
-
-public class FbPage {
+public class FbPage extends AbstractModel {
     public String id;
 
     public String name;
@@ -27,7 +29,7 @@ public class FbPage {
     }
 
     @SuppressWarnings("unchecked")
-    public void populate(Map<String, Object> pageData) {
+    public FbPage populate(Map<String, Object> pageData) {
         id = pageData.get(MyPagesDao.COL_PAGE_ID).toString();
         String strPageSettings = DPathUtils.getValue(pageData, MyPagesDao.COL_PAGE_SETTINGS,
                 String.class);
@@ -39,6 +41,7 @@ public class FbPage {
         }
         signature = DPathUtils.getValue(pageSettings, MyPagesDao.PAGE_SETTING_SIGNATURE,
                 String.class);
+        return this;
     }
 
     private String url;
