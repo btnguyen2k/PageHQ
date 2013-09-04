@@ -3,44 +3,44 @@ package models;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.codehaus.jackson.annotate.JsonProperty;
 
-import bo.MyPagesDao;
+import bo.PageBo;
 
 import com.github.ddth.plommon.utils.DPathUtils;
 import com.github.ddth.plommon.utils.JsonUtils;
 
-import controllers.routes;
+public class FbPage {
 
-public class FbPage extends AbstractModel {
-    public String id;
+    @JsonProperty
+    public String id, name, category;
 
-    public String name;
+    @JsonProperty
+    public PageBo page;
 
-    public String category;
-
+    @JsonProperty
     public String signature;
 
     public FbPage() {
     }
 
-    public FbPage(Map<String, Object> pageData) {
-        populate(pageData);
+    public FbPage(PageBo page) {
+        populate(page);
     }
 
     @SuppressWarnings("unchecked")
-    public FbPage populate(Map<String, Object> pageData) {
-        id = pageData.get(MyPagesDao.COL_PAGE_ID).toString();
-        String strPageSettings = DPathUtils.getValue(pageData, MyPagesDao.COL_PAGE_SETTINGS,
-                String.class);
+    public FbPage populate(PageBo page) {
+        this.page = page;
+        String strPageSettings = page.getSettings();
         Map<String, Object> pageSettings = null;
         try {
             pageSettings = JsonUtils.fromJsonString(strPageSettings, Map.class);
         } catch (Exception e) {
             pageSettings = new HashMap<String, Object>();
         }
-        signature = DPathUtils.getValue(pageSettings, MyPagesDao.PAGE_SETTING_SIGNATURE,
-                String.class);
+        signature = DPathUtils.getValue(pageSettings, PageBo.PAGE_SETTING_SIGNATURE, String.class);
         return this;
     }
 
@@ -57,7 +57,7 @@ public class FbPage extends AbstractModel {
 
     public String getUrlEdit() {
         if (urlEdit == null) {
-            urlEdit = routes.ControlPanel_Fbpage.edit(id).url();
+            urlEdit = controllers.routes.ControlPanel_Fbpage.edit(id).url();
         }
         return urlEdit;
     }
@@ -66,7 +66,7 @@ public class FbPage extends AbstractModel {
 
     public String getUrlPost() {
         if (urlPost == null) {
-            urlPost = routes.ControlPanel_Fbpage.post(id).url();
+            urlPost = controllers.routes.ControlPanel_Fbpage.post(id).url();
         }
         return urlPost;
     }
@@ -77,7 +77,7 @@ public class FbPage extends AbstractModel {
     @Override
     public int hashCode() {
         HashCodeBuilder hcb = new HashCodeBuilder(19, 81);
-        hcb.append(id).append(name).append(category);
+        hcb.append(page).append(name).append(category);
         return hcb.hashCode();
     }
 
@@ -90,6 +90,9 @@ public class FbPage extends AbstractModel {
             return false;
         }
         FbPage other = (FbPage) obj;
-        return id.equals(other.id);
+        EqualsBuilder eb = new EqualsBuilder();
+        eb.append(page, other.page).append(id, other.id).append(name, other.name)
+                .append(category, other.category);
+        return eb.isEquals();
     }
 }

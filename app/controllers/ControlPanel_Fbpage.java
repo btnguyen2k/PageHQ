@@ -9,8 +9,6 @@ import java.util.Map;
 import models.FbPage;
 import models.FbPostText;
 
-import com.github.ddth.plommon.utils.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
@@ -34,7 +32,10 @@ import utils.Constants;
 import utils.CookieUtils;
 import utils.FacebookUtils;
 import bo.MyPagesDao;
+import bo.PageBo;
 
+import com.github.ddth.plommon.utils.DPathUtils;
+import com.github.ddth.plommon.utils.JsonUtils;
 import compositions.FbAuth;
 
 public class ControlPanel_Fbpage extends Controller {
@@ -56,23 +57,11 @@ public class ControlPanel_Fbpage extends Controller {
         if (fbPages != null) {
             String email = fbProfile.getEmail();
             for (FbPage fbPage : fbPages) {
-                Map<String, Object> pageData = MyPagesDao.getPage(fbPage.id, email);
-                if (pageData == null) {
+                PageBo page = MyPagesDao.getPage(fbPage.id, email);
+                if (page == null) {
                     MyPagesDao.createPage(fbPage.id, email);
                 } else {
-                    String strPageSettings = DPathUtils.getValue(pageData,
-                            MyPagesDao.COL_PAGE_SETTINGS, String.class);
-                    Map<String, Object> pageSettings = null;
-                    try {
-                        pageSettings = JsonUtils.fromJsonString(strPageSettings, Map.class);
-                    } catch (Exception e) {
-                        pageSettings = new HashMap<String, Object>();
-                    }
-                    if (!(pageSettings instanceof Map)) {
-                        pageSettings = new HashMap<String, Object>();
-                    }
-                    fbPage.signature = DPathUtils.getValue(pageSettings,
-                            MyPagesDao.PAGE_SETTING_SIGNATURE, String.class);
+                    fbPage.signature = page.getSetting(PageBo.PAGE_SETTING_SIGNATURE, String.class);
                 }
             }
         }
@@ -92,12 +81,12 @@ public class ControlPanel_Fbpage extends Controller {
         FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
                 .getFbProfile(cookieFbAccessToken.value()) : null;
         String email = fbProfile != null ? fbProfile.getEmail() : null;
-        Map<String, Object> pageData = email != null ? MyPagesDao.getPage(pageId, email) : null;
-        if (pageData == null) {
+        PageBo page = email != null ? MyPagesDao.getPage(pageId, email) : null;
+        if (page == null) {
             return Results.badRequest(views.html.Cp.fbpage_edit.render(null));
         }
         FbPage fbPage = FacebookUtils.getFbPage(cookieFbAccessToken.value(), pageId);
-        fbPage.populate(pageData);
+        fbPage.populate(page);
         return Results.ok(views.html.Cp.fbpage_edit.render(formFbPage.fill(fbPage)));
     }
 
@@ -113,8 +102,8 @@ public class ControlPanel_Fbpage extends Controller {
         FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
                 .getFbProfile(cookieFbAccessToken.value()) : null;
         String email = fbProfile != null ? fbProfile.getEmail() : null;
-        Map<String, Object> pageData = email != null ? MyPagesDao.getPage(pageId, email) : null;
-        if (pageData == null) {
+        PageBo page = email != null ? MyPagesDao.getPage(pageId, email) : null;
+        if (page == null) {
             return Results.badRequest(views.html.Cp.fbpage_edit.render(null));
         }
 
@@ -146,12 +135,12 @@ public class ControlPanel_Fbpage extends Controller {
         }
         FbPage fbPage = null;
         if (!StringUtils.isBlank(pageId)) {
-            Map<String, Object> pageData = email != null ? MyPagesDao.getPage(pageId, email) : null;
-            if (pageData == null) {
+            PageBo page = email != null ? MyPagesDao.getPage(pageId, email) : null;
+            if (page == null) {
                 return Results.badRequest(views.html.Cp.fbpage_post.render(null, null, null));
             }
             fbPage = FacebookUtils.getFbPage(cookieFbAccessToken.value(), pageId);
-            fbPage.populate(pageData);
+            fbPage.populate(page);
         }
         FbPostText fbPostText = new FbPostText();
         fbPostText.pages = new ArrayList<String>();
@@ -203,9 +192,9 @@ public class ControlPanel_Fbpage extends Controller {
                     for (String pageId : pageIds) {
                         FbPage fbPage = FacebookUtils.getFbPage(fbAccessToken, pageId);
                         if (fbPage != null) {
-                            Map<String, Object> pageData = MyPagesDao.getPage(pageId, email);
-                            if (pageData != null) {
-                                fbPage.populate(pageData);
+                            PageBo page = MyPagesDao.getPage(pageId, email);
+                            if (page != null) {
+                                fbPage.populate(page);
                             }
                             String signature = fbPage.signature;
                             if (!StringUtils.isBlank(signature)) {
@@ -261,9 +250,9 @@ public class ControlPanel_Fbpage extends Controller {
             if (fbPage == null) {
                 return jsonResponse(400, "Invalid page or your Facebook session has expired!");
             }
-            Map<String, Object> pageData = MyPagesDao.getPage(pageId, email);
-            if (pageData != null) {
-                fbPage.populate(pageData);
+            PageBo page = MyPagesDao.getPage(pageId, email);
+            if (page != null) {
+                fbPage.populate(page);
             }
             String signature = fbPage.signature;
             if (!StringUtils.isBlank(signature)) {
@@ -317,9 +306,9 @@ public class ControlPanel_Fbpage extends Controller {
             if (fbPage == null) {
                 return jsonResponse(400, "Invalid page or your Facebook session has expired!");
             }
-            Map<String, Object> pageData = MyPagesDao.getPage(pageId, email);
-            if (pageData != null) {
-                fbPage.populate(pageData);
+            PageBo page = MyPagesDao.getPage(pageId, email);
+            if (page != null) {
+                fbPage.populate(page);
             }
             String signature = fbPage.signature;
             if (!StringUtils.isBlank(signature)) {

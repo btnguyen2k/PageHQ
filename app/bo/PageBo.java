@@ -4,9 +4,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.github.ddth.plommon.utils.DPathUtils;
+import com.github.ddth.plommon.utils.JsonUtils;
 
 public class PageBo extends AbstractBo {
 
@@ -32,6 +35,8 @@ public class PageBo extends AbstractBo {
 
     @JsonProperty
     private String settings;
+
+    private Map<String, Object> objSettings;
 
     public String getId() {
         return id;
@@ -73,12 +78,26 @@ public class PageBo extends AbstractBo {
         this.status = status;
     }
 
+    public Object getSetting(String key) {
+        return DPathUtils.getValue(objSettings, key);
+    }
+
+    public <T> T getSetting(String key, Class<T> clazz) {
+        return DPathUtils.getValue(objSettings, key, clazz);
+    }
+
     public String getSettings() {
         return settings;
     }
 
+    @SuppressWarnings("unchecked")
     public void setSettings(String settings) {
         this.settings = settings;
+        try {
+            this.objSettings = JsonUtils.fromJsonString(settings, Map.class);
+        } catch (Exception e) {
+            this.objSettings = new HashMap<String, Object>();
+        }
     }
 
     /**
@@ -110,4 +129,30 @@ public class PageBo extends AbstractBo {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+        HashCodeBuilder hcb = new HashCodeBuilder(19, 81);
+        hcb.append(id).append(adminEmail);
+        return hcb.hashCode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof PageBo)) {
+            return false;
+        }
+        PageBo other = (PageBo) obj;
+        EqualsBuilder eb = new EqualsBuilder();
+        eb.append(id, other.id).append(adminEmail, other.adminEmail)
+                .append(timestampCreate, other.timestampCreate)
+                .append(timestampLastActive, other.timestampLastActive)
+                .append(status, other.status).append(settings, other.settings);
+        return eb.isEquals();
+    }
 }

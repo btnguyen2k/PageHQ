@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.github.ddth.plommon.utils.DPathUtils;
@@ -59,4 +61,27 @@ public class AccountBo extends AbstractBo {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+        HashCodeBuilder hcb = new HashCodeBuilder(19, 81);
+        hcb.append(email);
+        return hcb.hashCode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof AccountBo)) {
+            return false;
+        }
+        AccountBo other = (AccountBo) obj;
+        EqualsBuilder eb = new EqualsBuilder();
+        eb.append(email, other.email).append(timestampCreate, other.timestampCreate);
+        return eb.isEquals();
+    }
 }
