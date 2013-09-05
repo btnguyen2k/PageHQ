@@ -1,9 +1,5 @@
 package compositions;
 
-import java.util.List;
-
-import models.FbPage;
-
 import org.springframework.social.facebook.api.FacebookProfile;
 
 import play.Logger;
@@ -19,32 +15,42 @@ import bo.MyPagesDao;
 
 public class FbAuthAction extends Action.Simple {
     public Result call(Http.Context ctx) throws Throwable {
-        List<FbPage> fbPages = null;
-        Cookie cookieFbAccessToken = null;
+        Cookie cookieExpiry = CookieUtils.getCookie(ctx.request(),
+                Constants.COOKIE_FB_ACCESS_TOKEN_EXPIRY);
+        String strExpiry = cookieExpiry != null ? cookieExpiry.value() : null;
+        int expiry = 0;
         try {
-            cookieFbAccessToken = CookieUtils.getCookie(ctx.request(),
-                    Constants.COOKIE_FB_ACCESS_TOKEN);
-            if (cookieFbAccessToken == null) {
-                Logger.debug("No FbAccessToken cookie.");
-            }
-            fbPages = cookieFbAccessToken != null ? FacebookUtils.getFbPages(cookieFbAccessToken
-                    .value()) : null;
+            expiry = Integer.parseInt(strExpiry);
         } catch (Exception e) {
-            fbPages = null;
+            expiry = 0;
         }
-        if (fbPages == null) {
-            if (cookieFbAccessToken != null) {
-                Logger.debug("FbAccessToken expires?");
-            } else {
-                Logger.debug("Error: cannot get fanpage list!");
+        if (expiry < 30) {
+            FacebookProfile fbProfile = null;
+            Cookie cookieFbAccessToken = null;
+            try {
+                cookieFbAccessToken = CookieUtils.getCookie(ctx.request(),
+                        Constants.COOKIE_FB_ACCESS_TOKEN);
+                if (cookieFbAccessToken == null) {
+                    Logger.debug("No FbAccessToken cookie.");
+                }
+                fbProfile = cookieFbAccessToken != null ? FacebookUtils
+                        .getFbProfile(cookieFbAccessToken.value()) : null;
+            } catch (Exception e) {
+                fbProfile = null;
             }
-            return redirect("/");
-        } else {
-            FacebookProfile fbProfile = FacebookUtils.getFbProfile(cookieFbAccessToken.value());
-            String email = fbProfile.getEmail();
-            AccountBo account = MyPagesDao.getAccount(email);
-            if (account == null) {
-                MyPagesDao.createAccount(email);
+            if (fbProfile == null) {
+                if (cookieFbAccessToken != null) {
+                    Logger.debug("FbAccessToken expires?");
+                } else {
+                    Logger.debug("Error: cannot get FB profile!");
+                }
+                return redirect("/");
+            } else {
+                String email = fbProfile.getEmail();
+                AccountBo account = MyPagesDao.getAccount(email);
+                if (account == null) {
+                    MyPagesDao.createAccount(email);
+                }
             }
         }
         return delegate.call(ctx);

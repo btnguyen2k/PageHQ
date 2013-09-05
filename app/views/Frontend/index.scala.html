@@ -32,6 +32,7 @@
                 if (response.status == 'connected') {
                     $.cookie('FB_USER', response.authResponse.userID, { path: '/' });
                     $.cookie('FB_ACCESS_TOKEN', response.authResponse.accessToken, { path: '/' });
+                    $.cookie('FB_ACCESS_TOKEN_EXPIRY', response.authResponse.expiresIn, { path: '/' });
                     document.location.href = "@routes.ControlPanel.index()";
                 } else {
                     $.removeCookie('FB_USER');

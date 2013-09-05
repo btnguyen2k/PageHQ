@@ -1,12 +1,17 @@
 package controllers;
 
+import org.springframework.social.facebook.api.FacebookProfile;
+
 import play.mvc.Controller;
+import play.mvc.Http.Cookie;
 import play.mvc.Result;
 import play.mvc.Results;
+import utils.Constants;
+import utils.CookieUtils;
+import utils.FacebookUtils;
+import bo.MyPagesDao;
 
 import compositions.FbAuth;
-
-import com.github.ddth.plommon.utils.*;
 
 public class ControlPanel extends Controller {
 
@@ -15,6 +20,14 @@ public class ControlPanel extends Controller {
      */
     @FbAuth
     public static Result index() {
+        Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
+                Constants.COOKIE_FB_ACCESS_TOKEN);
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
+                .getFbProfile(cookieFbAccessToken.value()) : null;
+        String email = fbProfile != null ? fbProfile.getEmail() : null;
+        if (email != null) {
+            MyPagesDao.createAccount(email);
+        }
         return Results.ok(views.html.Cp.index.render());
     }
 

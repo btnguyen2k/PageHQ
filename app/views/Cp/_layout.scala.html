@@ -69,6 +69,10 @@
                     $.removeCookie('FB_USER');
                     $.removeCookie('FB_ACCESS_TOKEN');
                     document.location.href = "@routes.Frontend.index()";
+                } else {
+                    $.cookie('FB_USER', response.authResponse.userID, { path: '/' });
+                    $.cookie('FB_ACCESS_TOKEN', response.authResponse.accessToken, { path: '/' });
+                    $.cookie('FB_ACCESS_TOKEN_EXPIRY', response.authResponse.expiresIn, { path: '/' });
                 }
             });
         }

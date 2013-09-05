@@ -22,6 +22,7 @@ CREATE TABLE mypages_page (
 DROP TABLE IF EXISTS mypages_master_feed;
 CREATE TABLE mypages_master_feed (
     feed_id                            VARCHAR(32),
+    feed_type                          INT                        NOT NULL DEFAULT 0,                        
     fuser_email                        VARCHAR(128),
         INDEX (fuser_email),
     fpage_id                           VARCHAR(32),

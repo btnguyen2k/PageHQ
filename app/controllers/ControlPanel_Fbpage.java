@@ -31,6 +31,7 @@ import play.mvc.Results;
 import utils.Constants;
 import utils.CookieUtils;
 import utils.FacebookUtils;
+import bo.FeedBo;
 import bo.MyPagesDao;
 import bo.PageBo;
 
@@ -45,7 +46,6 @@ public class ControlPanel_Fbpage extends Controller {
     /*
      * Handles /cp/listFbPages
      */
-    @SuppressWarnings("unchecked")
     @FbAuth
     public static Result list() {
         Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
@@ -318,7 +318,12 @@ public class ControlPanel_Fbpage extends Controller {
             }
             Facebook facebook = FacebookUtils.getFacebook(fbAccessToken);
             String feedId = facebook.pageOperations().post(pageId, text + signature);
-            return jsonResponse(200, feedId);
+            if (!StringUtils.isBlank(feedId)) {
+                MyPagesDao.createFeed(feedId, FeedBo.FEED_TYPE_TEXT, email, pageId);
+                return jsonResponse(200, feedId);
+            } else {
+                return jsonResponse(500, "Unknow error, can not post to page!");
+            }
         } catch (Exception e) {
             return jsonResponse(500, e.getClass() + "/" + e.getMessage());
         }
