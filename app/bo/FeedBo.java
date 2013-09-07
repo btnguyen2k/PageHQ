@@ -4,21 +4,27 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.codehaus.jackson.annotate.JsonProperty;
 
+import com.github.ddth.plommon.bo.BaseBo;
 import com.github.ddth.plommon.utils.DPathUtils;
+import com.github.ddth.plommon.utils.JsonUtils;
 
-public class FeedBo extends AbstractBo {
+public class FeedBo extends BaseBo {
 
     public final static int FEED_TYPE_TEXT = 0;
     public final static int FEED_TYPE_LINK = 1;
     public final static int FEED_TYPE_PHOTO = 2;
 
+    public final static String METAINFO_TEXT = "text";
+    public final static String METAINFO_URL = "url";
+    public final static String METAINFO_CAPTION = "caption";
+
     /* virtual db columns */
+    public final static String COL_ID = "id";
     public final static String COL_FEED_ID = "feed_id";
     public final static String COL_FEED_TYPE = "feed_type";
+    public final static String COL_FEED_METAINFO = "feed_metainfo";
     public final static String COL_USER_EMAIL = "user_email";
     public final static String COL_PAGE_ID = "page_id";
     public final static String COL_TIMESTAMP_CREATE = "timestamp_create";
@@ -26,110 +32,101 @@ public class FeedBo extends AbstractBo {
     public final static String COL_NUM_COMMENTS = "num_comments";
     public final static String COL_NUM_SHARES = "num_shares";
 
-    @JsonProperty
-    private String feedId, feedType, userEmail, pageId;
+    private Map<String, Object> metainfo;
 
-    @JsonProperty
-    private Date timestampCreate;
+    public String getId() {
+        return getAttribute(COL_ID, String.class);
+    }
 
-    @JsonProperty
-    private Integer numLikes, numShares, numComments;
+    public FeedBo setId(String id) {
+        return (FeedBo) setAttribute(COL_ID, id);
+    }
 
     public String getFeedId() {
-        return feedId;
+        return getAttribute(COL_FEED_ID, String.class);
     }
 
-    public void setFeedId(String feedId) {
-        this.feedId = feedId;
+    public FeedBo setFeedId(String feedId) {
+        return (FeedBo) setAttribute(COL_FEED_ID, feedId);
     }
 
-    public String getFeedType() {
-        return feedType;
+    public Integer getFeedType() {
+        return getAttribute(COL_FEED_TYPE, Integer.class);
     }
 
-    public void setFeedType(String feedType) {
-        this.feedType = feedType;
+    public FeedBo setFeedType(Integer feedType) {
+        return (FeedBo) setAttribute(COL_FEED_TYPE, feedType);
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public String getMetaInfo() {
+        return getAttribute(COL_FEED_METAINFO, String.class);
     }
 
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
+    public Object getMetaInfo(String key) {
+        return DPathUtils.getValue(metainfo, key);
     }
 
-    public String getPageId() {
-        return pageId;
+    public <T> T getMetaInfo(String key, Class<T> clazz) {
+        return DPathUtils.getValue(metainfo, key, clazz);
     }
 
-    public void setPageId(String pageId) {
-        this.pageId = pageId;
-    }
-
-    public Date getTimestampCreate() {
-        return timestampCreate;
-    }
-
-    public void setTimestampCreate(Date timestampCreate) {
-        this.timestampCreate = timestampCreate;
-    }
-
-    public Integer getNumLikes() {
-        return numLikes;
-    }
-
-    public void setNumLikes(Integer numLikes) {
-        this.numLikes = numLikes;
-    }
-
-    public Integer getNumShares() {
-        return numShares;
-    }
-
-    public void setNumShares(Integer numShares) {
-        this.numShares = numShares;
-    }
-
-    public Integer getNumComments() {
-        return numComments;
-    }
-
-    public void setNumComments(Integer numComments) {
-        this.numComments = numComments;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FeedBo populate(Map<String, Object> data) {
-        setFeedId(DPathUtils.getValue(data, COL_FEED_ID, String.class));
-        setFeedType(DPathUtils.getValue(data, COL_FEED_TYPE, String.class));
-        setUserEmail(DPathUtils.getValue(data, COL_USER_EMAIL, String.class));
-        setPageId(DPathUtils.getValue(data, COL_PAGE_ID, String.class));
-        setTimestampCreate(DPathUtils.getValue(data, COL_TIMESTAMP_CREATE, Date.class));
-        setNumLikes(DPathUtils.getValue(data, COL_NUM_LIKES, Integer.class));
-        setNumShares(DPathUtils.getValue(data, COL_NUM_SHARES, Integer.class));
-        setNumComments(DPathUtils.getValue(data, COL_NUM_COMMENTS, Integer.class));
+    @SuppressWarnings("unchecked")
+    public FeedBo setMetaInfo(String metaInfo) {
+        setAttribute(COL_FEED_METAINFO, metaInfo);
+        try {
+            this.metainfo = JsonUtils.fromJsonString(metaInfo, Map.class);
+        } catch (Exception e) {
+            this.metainfo = new HashMap<String, Object>();
+        }
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, Object> toMap() {
-        Map<String, Object> result = new HashMap<String, Object>();
-        result.put(COL_FEED_ID, getFeedId());
-        result.put(COL_FEED_TYPE, getFeedType());
-        result.put(COL_USER_EMAIL, getUserEmail());
-        result.put(COL_PAGE_ID, getPageId());
-        result.put(COL_TIMESTAMP_CREATE, getTimestampCreate());
-        result.put(COL_NUM_LIKES, getNumLikes());
-        result.put(COL_NUM_SHARES, getNumShares());
-        result.put(COL_NUM_COMMENTS, getNumComments());
-        return result;
+    public String getUserEmail() {
+        return getAttribute(COL_USER_EMAIL, String.class);
+    }
+
+    public FeedBo setUserEmail(String userEmail) {
+        return (FeedBo) setAttribute(COL_USER_EMAIL, userEmail);
+    }
+
+    public String getPageId() {
+        return getAttribute(COL_PAGE_ID, String.class);
+    }
+
+    public FeedBo setPageId(String pageId) {
+        return (FeedBo) setAttribute(COL_PAGE_ID, pageId);
+    }
+
+    public Date getTimestampCreate() {
+        return getAttribute(COL_TIMESTAMP_CREATE, Date.class);
+    }
+
+    public FeedBo setTimestampCreate(Date timestampCreate) {
+        return (FeedBo) setAttribute(COL_TIMESTAMP_CREATE, timestampCreate);
+    }
+
+    public Integer getNumLikes() {
+        return getAttribute(COL_NUM_LIKES, Integer.class);
+    }
+
+    public FeedBo setNumLikes(Integer numLikes) {
+        return (FeedBo) setAttribute(COL_NUM_LIKES, numLikes);
+    }
+
+    public Integer getNumShares() {
+        return getAttribute(COL_NUM_SHARES, Integer.class);
+    }
+
+    public FeedBo setNumShares(Integer numShares) {
+        return (FeedBo) setAttribute(COL_NUM_SHARES, numShares);
+    }
+
+    public Integer getNumComments() {
+        return getAttribute(COL_NUM_COMMENTS, Integer.class);
+    }
+
+    public FeedBo setNumComments(Integer numComments) {
+        return (FeedBo) setAttribute(COL_NUM_COMMENTS, numComments);
     }
 
     /**
@@ -138,22 +135,8 @@ public class FeedBo extends AbstractBo {
     @Override
     public int hashCode() {
         HashCodeBuilder hcb = new HashCodeBuilder(19, 81);
-        hcb.append(feedId).append(userEmail).append(pageId).append(timestampCreate);
+        hcb.append(getId()).append(getFeedId()).append(getFeedType()).append(getUserEmail())
+                .append(getPageId()).append(getTimestampCreate());
         return hcb.hashCode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof FeedBo)) {
-            return false;
-        }
-        FeedBo other = (FeedBo) obj;
-        EqualsBuilder eb = new EqualsBuilder();
-        eb.append(feedId, other.feedId).append(userEmail, other.userEmail)
-                .append(pageId, other.pageId).append(timestampCreate, other.timestampCreate);
-        return eb.isEquals();
     }
 }

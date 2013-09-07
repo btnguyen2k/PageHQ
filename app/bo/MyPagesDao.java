@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import utils.Utils;
 
+import com.github.ddth.plommon.bo.BaseDao;
 import com.github.ddth.plommon.utils.DPathUtils;
 import com.github.ddth.plommon.utils.JsonUtils;
 
@@ -30,8 +31,8 @@ public class MyPagesDao extends BaseDao {
         return "PAGE_" + pageId + "_" + email;
     }
 
-    private static String cacheKeyFeed(String feedId) {
-        return "FEED_" + feedId;
+    private static String cacheKeyFeed(String id) {
+        return "FEED_" + id;
     }
 
     /*--------------------------------------------------------------------------------*/
@@ -68,7 +69,7 @@ public class MyPagesDao extends BaseDao {
             dbRow = dbResult != null && dbResult.size() > 0 ? dbResult.get(0) : null;
             putToCache(CACHE_KEY, dbRow);
         }
-        return dbRow != null ? new AccountBo().populate(dbRow) : null;
+        return dbRow != null ? (AccountBo) new AccountBo().fromMap(dbRow) : null;
     }
 
     /*--------------------------------------------------------------------------------*/
@@ -111,7 +112,7 @@ public class MyPagesDao extends BaseDao {
             dbRow = dbResult != null && dbResult.size() > 0 ? dbResult.get(0) : null;
             putToCache(CACHE_KEY, dbRow);
         }
-        return dbRow != null ? new PageBo().populate(dbRow) : null;
+        return dbRow != null ? (PageBo) new PageBo().fromMap(dbRow) : null;
     }
 
     /**
@@ -182,41 +183,50 @@ public class MyPagesDao extends BaseDao {
      * Creates a new FB feed.
      * 
      * @param feedId
+     * @param feedType
+     * @param metaInfo
      * @param userEmail
      * @param pageId
      */
-    public static void createFeed(String feedId, int feedType, String userEmail, String pageId) {
+    public static void createFeed(String feedId, int feedType, Map<String, Object> metaInfo,
+            String userEmail, String pageId) {
         String shard = Utils.shardWeekly();
         String tableName = MessageFormat.format(TABLE_FEED, shard);
-        String SQL = "INSERT IGNORE INTO {0} (feed_id, feed_type, fuser_email, fpage_id, ftimestamp, fnum_likes, fnum_shares, fnum_comments) VALUES (?, ?, ?, ?, NOW(), 0, 0, 0)";
+        String id = shard + "_" + feedId;
+        String SQL = "INSERT IGNORE INTO {0} "
+                + "(fid, feed_id, feed_type, fmetainfo, fuser_email, fpage_id, ftimestamp, fnum_likes, fnum_shares, fnum_comments) "
+                + "VALUES (?, ?, ?, ?, ?, ?, NOW(), 0, 0, 0)";
         JdbcTemplate jdbcTemplate = jdbcTemplate();
-        jdbcTemplate.update(MessageFormat.format(SQL, tableName), new Object[] { feedId, feedType,
-                userEmail, pageId });
-        removeFromCache(cacheKeyFeed(feedId));
+        jdbcTemplate.update(MessageFormat.format(SQL, tableName), new Object[] { id, feedId,
+                feedType, JsonUtils.toJsonString(metaInfo), userEmail, pageId });
+        removeFromCache(cacheKeyFeed(id));
     }
 
     /**
-     * Loads a FB feed.
+     * id Loads a FB feed.
      * 
      * @param feedId
      * @return
      */
     @SuppressWarnings("unchecked")
-    public static FeedBo getFeed(String feedId) {
-        final String CACHE_KEY = cacheKeyFeed(feedId);
+    public static FeedBo getFeed(String id) {
+        final String CACHE_KEY = cacheKeyFeed(id);
         Map<String, Object> dbRow = getFromCache(CACHE_KEY, Map.class);
         if (dbRow == null) {
-            final String SQL = "SELECT feed_id AS {1}, feed_type AS {2}, fuser_email AS {3}, fpage_id AS {4}, ftimestamp AS {5}, fnum_likes AS {6}, fnum_shares AS {7}, fnum_comments AS {8} FROM {0} WHERE feed_id=?";
+            final String SQL = "SELECT fid AS {1}, feed_id AS {2}, feed_type AS {3}, fmetainfo AS {4}, "
+                    + "fuser_email AS {5}, fpage_id AS {6}, ftimestamp AS {7}, "
+                    + "fnum_likes AS {8}, fnum_shares AS {9}, fnum_comments AS {10} "
+                    + "FROM {0} WHERE fid=?";
             JdbcTemplate jdbcTemplate = jdbcTemplate();
             List<Map<String, Object>> dbResult = jdbcTemplate.queryForList(MessageFormat.format(
-                    SQL, TABLE_FEED, FeedBo.COL_FEED_ID, FeedBo.COL_FEED_TYPE,
-                    FeedBo.COL_USER_EMAIL, FeedBo.COL_PAGE_ID, FeedBo.COL_TIMESTAMP_CREATE,
-                    FeedBo.COL_NUM_LIKES, FeedBo.COL_NUM_SHARES, FeedBo.COL_NUM_COMMENTS),
-                    new Object[] { feedId });
+                    SQL, TABLE_FEED, FeedBo.COL_ID, FeedBo.COL_FEED_ID, FeedBo.COL_FEED_TYPE,
+                    FeedBo.COL_FEED_METAINFO, FeedBo.COL_USER_EMAIL, FeedBo.COL_PAGE_ID,
+                    FeedBo.COL_TIMESTAMP_CREATE, FeedBo.COL_NUM_LIKES, FeedBo.COL_NUM_SHARES,
+                    FeedBo.COL_NUM_COMMENTS), new Object[] { id });
             dbRow = dbResult != null && dbResult.size() > 0 ? dbResult.get(0) : null;
             putToCache(CACHE_KEY, dbRow);
         }
-        return dbRow != null ? new FeedBo().populate(dbRow) : null;
+        return dbRow != null ? (FeedBo) new FeedBo().fromMap(dbRow) : null;
     }
     /*--------------------------------------------------------------------------------*/
 }

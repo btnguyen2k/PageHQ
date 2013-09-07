@@ -204,8 +204,14 @@ public class ControlPanel_Fbpage extends Controller {
                             }
 
                             Resource facebookPhoto = new FileSystemResource(physicalFile);
-                            facebook.pageOperations().postPhoto(pageId, pageId, facebookPhoto,
-                                    caption + signature);
+                            String feedId = facebook.pageOperations().postPhoto(pageId, pageId,
+                                    facebookPhoto, caption + signature);
+                            if (!StringUtils.isBlank(feedId)) {
+                                Map<String, Object> metaInfo = new HashMap<String, Object>();
+                                metaInfo.put(FeedBo.METAINFO_CAPTION, caption);
+                                MyPagesDao.createFeed(feedId, FeedBo.FEED_TYPE_PHOTO, metaInfo,
+                                        email, pageId);
+                            }
                         }
                     }
                 }
@@ -268,7 +274,14 @@ public class ControlPanel_Fbpage extends Controller {
             Facebook facebook = FacebookUtils.getFacebook(fbAccessToken);
             String feedId = facebook.pageOperations().post(pageId, urlDesc.trim() + signature,
                     facebookLink);
-            return jsonResponse(200, feedId);
+            if (!StringUtils.isBlank(feedId)) {
+                Map<String, Object> metaInfo = new HashMap<String, Object>();
+                metaInfo.put(FeedBo.METAINFO_URL, url);
+                MyPagesDao.createFeed(feedId, FeedBo.FEED_TYPE_LINK, metaInfo, email, pageId);
+                return jsonResponse(200, feedId);
+            } else {
+                return jsonResponse(500, "Unknow error, can not post to page!");
+            }
         } catch (Exception e) {
             return jsonResponse(500, e.getClass() + "/" + e.getMessage());
         }
@@ -319,7 +332,9 @@ public class ControlPanel_Fbpage extends Controller {
             Facebook facebook = FacebookUtils.getFacebook(fbAccessToken);
             String feedId = facebook.pageOperations().post(pageId, text + signature);
             if (!StringUtils.isBlank(feedId)) {
-                MyPagesDao.createFeed(feedId, FeedBo.FEED_TYPE_TEXT, email, pageId);
+                Map<String, Object> metaInfo = new HashMap<String, Object>();
+                metaInfo.put(FeedBo.METAINFO_TEXT, text);
+                MyPagesDao.createFeed(feedId, FeedBo.FEED_TYPE_TEXT, metaInfo, email, pageId);
                 return jsonResponse(200, feedId);
             } else {
                 return jsonResponse(500, "Unknow error, can not post to page!");

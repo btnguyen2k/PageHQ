@@ -21,8 +21,10 @@ CREATE TABLE mypages_page (
 
 DROP TABLE IF EXISTS mypages_master_feed;
 CREATE TABLE mypages_master_feed (
-    feed_id                            VARCHAR(32),
-    feed_type                          INT                        NOT NULL DEFAULT 0,                        
+    fid                                VARCHAR(64),
+    feed_id                            VARCHAR(64),
+    feed_type                          INT                        NOT NULL DEFAULT 0,
+    fmetainfo                          TEXT,
     fuser_email                        VARCHAR(128),
         INDEX (fuser_email),
     fpage_id                           VARCHAR(32),
@@ -32,5 +34,5 @@ CREATE TABLE mypages_master_feed (
     fnum_likes                         INT                        NOT NULL DEFAULT 0,
     fnum_shares                        INT                        NOT NULL DEFAULT 0,
     fnum_comments                      INT                        NOT NULL DEFAULT 0,
-    PRIMARY KEY (feed_id)
+    PRIMARY KEY (fid)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;

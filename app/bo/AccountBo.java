@@ -1,64 +1,31 @@
 package bo;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.codehaus.jackson.annotate.JsonProperty;
 
-import com.github.ddth.plommon.utils.DPathUtils;
+import com.github.ddth.plommon.bo.BaseBo;
 
-public class AccountBo extends AbstractBo {
+public class AccountBo extends BaseBo {
 
     /* virtual db columns */
     public final static String COL_ACCOUNT_EMAIL = "account_email";
     public final static String COL_ACCOUNT_TIMESTAMP = "timestamp_create";
 
-    @JsonProperty
-    private String email;
-
-    @JsonProperty
-    private Date timestampCreate;
-
     public String getEmail() {
-        return email;
+        return getAttribute(COL_ACCOUNT_EMAIL, String.class);
     }
 
     public AccountBo setEmail(String email) {
-        this.email = email;
-        return this;
+        return (AccountBo) setAttribute(COL_ACCOUNT_EMAIL, email);
     }
 
     public Date getTimestampCreate() {
-        return timestampCreate;
+        return getAttribute(COL_ACCOUNT_TIMESTAMP, Date.class);
     }
 
     public AccountBo setTimestampCreate(Date timestampCreate) {
-        this.timestampCreate = timestampCreate;
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public AccountBo populate(Map<String, Object> data) {
-        setEmail(DPathUtils.getValue(data, COL_ACCOUNT_EMAIL, String.class));
-        setTimestampCreate(DPathUtils.getValue(data, COL_ACCOUNT_TIMESTAMP, Date.class));
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, Object> toMap() {
-        Map<String, Object> result = new HashMap<String, Object>();
-        result.put(COL_ACCOUNT_EMAIL, getEmail());
-        result.put(COL_ACCOUNT_TIMESTAMP, getTimestampCreate());
-        return result;
+        return (AccountBo) setAttribute(COL_ACCOUNT_TIMESTAMP, timestampCreate);
     }
 
     /**
@@ -67,21 +34,7 @@ public class AccountBo extends AbstractBo {
     @Override
     public int hashCode() {
         HashCodeBuilder hcb = new HashCodeBuilder(19, 81);
-        hcb.append(email);
+        hcb.append(getEmail());
         return hcb.hashCode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof AccountBo)) {
-            return false;
-        }
-        AccountBo other = (AccountBo) obj;
-        EqualsBuilder eb = new EqualsBuilder();
-        eb.append(email, other.email).append(timestampCreate, other.timestampCreate);
-        return eb.isEquals();
     }
 }
