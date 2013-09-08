@@ -13,18 +13,43 @@ import utils.FacebookUtils;
 import bo.AccountBo;
 import bo.MyPagesDao;
 
+import com.github.ddth.plommon.utils.SessionUtils;
+
 public class FbAuthAction extends Action.Simple {
     public Result call(Http.Context ctx) throws Throwable {
-        Cookie cookieExpiry = CookieUtils.getCookie(ctx.request(),
-                Constants.COOKIE_FB_ACCESS_TOKEN_EXPIRY);
-        String strExpiry = cookieExpiry != null ? cookieExpiry.value() : null;
-        int expiry = 0;
+        /*
+         * FB_ACCESS_TOKEN_TIME = get from session FB_ACCESS_EXPIRY = get from
+         * cookie if ( FB_ACCESS_TOKEN_TIME + FB_ACCESS_TOKEN_EXPIRY <
+         * System.currentTimeMillis()/1000 ) then FB_ACCESS_TOKEN has expired!
+         */
+        int fbAccessTokenTimeExpiry = 0;
+        Cookie cookieExpiry = null;
         try {
-            expiry = Integer.parseInt(strExpiry);
+            cookieExpiry = CookieUtils.getCookie(ctx.request(),
+                    Constants.COOKIE_FB_ACCESS_TOKEN_EXPIRY);
+            fbAccessTokenTimeExpiry = Integer.parseInt(cookieExpiry.value());
         } catch (Exception e) {
-            expiry = 0;
+            fbAccessTokenTimeExpiry = 0;
         }
-        if (expiry < 30) {
+
+        int fbAccessTokenTime = 0;
+        try {
+            Object sessionTime = SessionUtils.getSession(Constants.SESSION_FB_ACCESS_TOKEN_TIME,
+                    false);
+            fbAccessTokenTime = Integer.parseInt(sessionTime.toString());
+        } catch (Exception e) {
+            fbAccessTokenTime = 0;
+        }
+
+        if (fbAccessTokenTimeExpiry > 0) {
+            int temp = (int) (System.currentTimeMillis() / 1000);
+            SessionUtils.setSession(Constants.SESSION_FB_ACCESS_TOKEN_TIME, temp,
+                    fbAccessTokenTimeExpiry + 1);
+        }
+
+        if (fbAccessTokenTimeExpiry < 30
+                || fbAccessTokenTime + fbAccessTokenTimeExpiry < System.currentTimeMillis() / 1000) {
+            // recheck FB Access Token
             FacebookProfile fbProfile = null;
             Cookie cookieFbAccessToken = null;
             try {

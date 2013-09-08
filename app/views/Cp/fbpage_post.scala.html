@@ -205,13 +205,13 @@
 									<label class="mylabel">@Messages("msg.fbpost.url") *:</label>
 									<input type="text" name="url" id="_fbpost_url" class="span12" placeholder="http://" required="required">
 									<span class="help-block"></span>
+
+                                    <label class="mylabel">@Messages("msg.fbpost.url_desc"):</label>
+                                    <textarea name="urlDescription" rows="4" class="span12" id="_fbpost_url_desc"></textarea>
+                                    <span class="help-block"></span>
 									
 									<label class="mylabel">@Messages("msg.fbpost.url_caption"):</label>
 									<input type="text" name="urlCaption" id="_fbpost_url_caption" class="span12">
-									<span class="help-block"></span>
-									
-									<label class="mylabel">@Messages("msg.fbpost.url_desc"):</label>
-									<textarea name="urlDescription" rows="4" class="span12" id="_fbpost_url_desc"></textarea>
 									<span class="help-block"></span>
 									
 									<button type="button" class="btn btn-primary" onclick="javascript:postLink();"><i class="icon-upload"></i> @Messages("msg.fbpost")</button>

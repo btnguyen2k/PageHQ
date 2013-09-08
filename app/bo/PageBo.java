@@ -77,14 +77,38 @@ public class PageBo extends BaseBo {
         return getAttribute(COL_PAGE_SETTINGS, String.class);
     }
 
-    @SuppressWarnings("unchecked")
     public PageBo setSettings(String settings) {
         setAttribute(COL_PAGE_SETTINGS, settings);
+        updateSettings(settings);
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void updateSettings(String strSettings) {
         try {
-            this.objSettings = JsonUtils.fromJsonString(settings, Map.class);
+            this.objSettings = JsonUtils.fromJsonString(strSettings, Map.class);
         } catch (Exception e) {
             this.objSettings = new HashMap<String, Object>();
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public PageBo fromMap(Map<String, Object> data) {
+        super.fromMap(data);
+        updateSettings(getSettings());
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public PageBo fromJson(String jsonData) {
+        super.fromJson(jsonData);
+        updateSettings(getSettings());
         return this;
     }
 
