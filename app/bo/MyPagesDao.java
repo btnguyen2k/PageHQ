@@ -1,6 +1,8 @@
 package bo;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,8 @@ public class MyPagesDao extends BaseDao {
     public final static String TABLE_PAGE = "mypages_page";
 
     public final static String TABLE_FEED = "mypages_feed_{0}";
+
+    private final static PageBo[] EMPTY_ARRAY_PAGEBO = new PageBo[0];
 
     /*--------------------------------------------------------------------------------*/
 
@@ -116,6 +120,30 @@ public class MyPagesDao extends BaseDao {
     }
 
     /**
+     * Gets all pages of an account.
+     * 
+     * @param email
+     * @return
+     */
+    public static PageBo[] getPages(String email) {
+        final String SQL = "SELECT pid AS {1} FROM {0} WHERE padmin_email=? ORDER BY pid";
+        JdbcTemplate jdbcTemplate = jdbcTemplate();
+        List<Map<String, Object>> dbResult = jdbcTemplate.queryForList(
+                MessageFormat.format(SQL, TABLE_PAGE, PageBo.COL_PAGE_ID), new Object[] { email });
+        List<PageBo> result = new ArrayList<PageBo>();
+        if (dbResult != null) {
+            for (Map<String, Object> dbRow : dbResult) {
+                String pageId = DPathUtils.getValue(dbRow, PageBo.COL_PAGE_ID, String.class);
+                PageBo page = getPage(pageId, email);
+                if (page != null) {
+                    result.add(page);
+                }
+            }
+        }
+        return result.toArray(EMPTY_ARRAY_PAGEBO);
+    }
+
+    /**
      * Updates an existing FB page.
      * 
      * @param pageData
@@ -158,6 +186,23 @@ public class MyPagesDao extends BaseDao {
         DPathUtils.setValue(pageSettings, PageBo.PAGE_SETTING_SIGNATURE, newSignature);
         page.setSettings(JsonUtils.toJsonString(pageSettings));
         return updatePage(page);
+    }
+
+    /**
+     * Updates FB page's last activity timestamp.
+     * 
+     * @param page
+     * @return
+     */
+    public static PageBo updatePageLastActive(PageBo page) {
+        Date currentLastActive = page.getTimestampLastActive();
+        Date now = new Date();
+        if (now.getTime() - 3600 * 1000 > currentLastActive.getTime()) {
+            // only update if 1 hour has passed
+            page.setTimestampLastActive(now);
+            return updatePage(page);
+        }
+        return page;
     }
 
     /**

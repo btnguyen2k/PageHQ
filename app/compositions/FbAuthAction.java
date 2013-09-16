@@ -10,6 +10,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.CookieUtils;
 import utils.FacebookUtils;
+import utils.JedisUtils;
 import bo.AccountBo;
 import bo.MyPagesDao;
 
@@ -18,20 +19,21 @@ import com.github.ddth.plommon.utils.SessionUtils;
 public class FbAuthAction extends Action.Simple {
     public Result call(Http.Context ctx) throws Throwable {
         /*
-         * FB_ACCESS_TOKEN_TIME = get from session FB_ACCESS_EXPIRY = get from
-         * cookie if ( FB_ACCESS_TOKEN_TIME + FB_ACCESS_TOKEN_EXPIRY <
+         * FB_ACCESS_EXPIRY = get from cookie
+         * 
+         * FB_ACCESS_TOKEN_TIME = get from session
+         * 
+         * if ( FB_ACCESS_TOKEN_TIME + FB_ACCESS_TOKEN_EXPIRY <
          * System.currentTimeMillis()/1000 ) then FB_ACCESS_TOKEN has expired!
          */
         int fbAccessTokenTimeExpiry = 0;
-        Cookie cookieExpiry = null;
         try {
-            cookieExpiry = CookieUtils.getCookie(ctx.request(),
+            Cookie cookieExpiry = CookieUtils.getCookie(ctx.request(),
                     Constants.COOKIE_FB_ACCESS_TOKEN_EXPIRY);
             fbAccessTokenTimeExpiry = Integer.parseInt(cookieExpiry.value());
         } catch (Exception e) {
             fbAccessTokenTimeExpiry = 0;
         }
-
         int fbAccessTokenTime = 0;
         try {
             Object sessionTime = SessionUtils.getSession(Constants.SESSION_FB_ACCESS_TOKEN_TIME,
@@ -42,15 +44,22 @@ public class FbAuthAction extends Action.Simple {
         }
 
         if (fbAccessTokenTimeExpiry > 0) {
+            // store/update FB_ACCESS_TOKEN_TIME
             int temp = (int) (System.currentTimeMillis() / 1000);
             SessionUtils.setSession(Constants.SESSION_FB_ACCESS_TOKEN_TIME, temp,
                     fbAccessTokenTimeExpiry + 1);
         }
 
+        FacebookProfile fbProfile = null;
+
+        Logger.debug("" + fbAccessTokenTimeExpiry);
+        Logger.debug("" + fbAccessTokenTime);
+        Logger.debug(""
+                + (fbAccessTokenTime + fbAccessTokenTimeExpiry - System.currentTimeMillis() / 1000));
+
         if (fbAccessTokenTimeExpiry < 30
                 || fbAccessTokenTime + fbAccessTokenTimeExpiry < System.currentTimeMillis() / 1000) {
             // recheck FB Access Token
-            FacebookProfile fbProfile = null;
             Cookie cookieFbAccessToken = null;
             try {
                 cookieFbAccessToken = CookieUtils.getCookie(ctx.request(),
@@ -78,6 +87,23 @@ public class FbAuthAction extends Action.Simple {
                 }
             }
         }
+
+        if (fbProfile != null) {
+            // add account to list of active accounts
+            Number accountLastActive = (Number) SessionUtils
+                    .getSession(Constants.SESSION_ACC_LAST_ACTIVE);
+            if (accountLastActive == null) {
+                accountLastActive = Long.valueOf(0);
+            }
+            if (accountLastActive.longValue() + 60000 < System.currentTimeMillis()) {
+                SessionUtils.setSession(Constants.SESSION_ACC_LAST_ACTIVE,
+                        System.currentTimeMillis());
+                String email = fbProfile.getEmail();
+                JedisUtils.setAdd(Constants.REDIS_SET_ACTIVE_ACCOUNTS, 3600 * 24,
+                        JedisUtils.serialize(email));
+            }
+        }
+
         return delegate.call(ctx);
     }
 }

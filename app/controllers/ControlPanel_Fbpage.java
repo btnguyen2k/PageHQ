@@ -62,6 +62,7 @@ public class ControlPanel_Fbpage extends Controller {
                     MyPagesDao.createPage(fbPage.id, email);
                 } else {
                     fbPage.signature = page.getSetting(PageBo.PAGE_SETTING_SIGNATURE, String.class);
+                    MyPagesDao.updatePageLastActive(page);
                 }
             }
         }

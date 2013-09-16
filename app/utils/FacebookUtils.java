@@ -26,6 +26,9 @@ import com.github.ddth.plommon.utils.SessionUtils;
  * @author Thanh.Nguyen <btnguyen2k@gmail.com>
  */
 public class FacebookUtils {
+
+    private static Facebook FACEBOOK_PUBLIC = new FacebookTemplate();
+
     /**
      * Obtains a Facebook instance associated with an access token.
      * 
@@ -33,7 +36,7 @@ public class FacebookUtils {
      * @return
      */
     public static Facebook getFacebook(String fbAccessToken) {
-        return fbAccessToken != null ? new FacebookTemplate(fbAccessToken) : null;
+        return fbAccessToken != null ? new FacebookTemplate(fbAccessToken) : FACEBOOK_PUBLIC;
     }
 
     private static boolean validateFbAccessToken(String fbAccessToken) {

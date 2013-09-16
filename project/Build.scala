@@ -14,6 +14,7 @@ object ApplicationBuild extends Build {
     "mysql" % "mysql-connector-java" % "5.1.26",
     "com.github.ddth" %% "play-module-plommon" % "0.3.0-SNAPSHOT",
     "com.google.guava" % "guava" % "14.0",
+    "com.typesafe" %% "play-plugins-redis" % "2.1.1",
     
     javaCore,
     javaJdbc
@@ -21,7 +22,8 @@ object ApplicationBuild extends Build {
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
     // Add your own project settings here
-    resolvers += "Sonatype snapshots repository" at "http://oss.sonatype.org/content/repositories/snapshots/"
+    resolvers += "Sonatype snapshots repository" at "http://oss.sonatype.org/content/repositories/snapshots/",
+    resolvers += "pk11-scratch" at "http://pk11-scratch.googlecode.com/svn/trunk"
   )
 
 }
