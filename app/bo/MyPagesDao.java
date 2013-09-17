@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import utils.Utils;
@@ -126,7 +127,10 @@ public class MyPagesDao extends BaseDao {
      * @return
      */
     public static PageBo[] getPages(String email) {
-        final String SQL = "SELECT pid AS {1} FROM {0} WHERE padmin_email=? ORDER BY pid";
+        if (StringUtils.isBlank(email)) {
+            return null;
+        }
+        final String SQL = "SELECT pid AS {1} FROM {0} WHERE padmin_email=? ORDER BY ptimestamp_lastactive DESC, pid";
         JdbcTemplate jdbcTemplate = jdbcTemplate();
         List<Map<String, Object>> dbResult = jdbcTemplate.queryForList(
                 MessageFormat.format(SQL, TABLE_PAGE, PageBo.COL_PAGE_ID), new Object[] { email });

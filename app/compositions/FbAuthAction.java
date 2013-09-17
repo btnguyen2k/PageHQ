@@ -51,12 +51,6 @@ public class FbAuthAction extends Action.Simple {
         }
 
         FacebookProfile fbProfile = null;
-
-        Logger.debug("" + fbAccessTokenTimeExpiry);
-        Logger.debug("" + fbAccessTokenTime);
-        Logger.debug(""
-                + (fbAccessTokenTime + fbAccessTokenTimeExpiry - System.currentTimeMillis() / 1000));
-
         if (fbAccessTokenTimeExpiry < 30
                 || fbAccessTokenTime + fbAccessTokenTimeExpiry < System.currentTimeMillis() / 1000) {
             // recheck FB Access Token
@@ -99,8 +93,7 @@ public class FbAuthAction extends Action.Simple {
                 SessionUtils.setSession(Constants.SESSION_ACC_LAST_ACTIVE,
                         System.currentTimeMillis());
                 String email = fbProfile.getEmail();
-                JedisUtils.setAdd(Constants.REDIS_SET_ACTIVE_ACCOUNTS, 3600 * 24,
-                        JedisUtils.serialize(email));
+                JedisUtils.setAdd(Constants.REDIS_SET_ACTIVE_ACCOUNTS, JedisUtils.serialize(email));
             }
         }
 

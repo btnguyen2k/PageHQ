@@ -18,4 +18,6 @@ public class Constants {
     public final static String SESSION_ACC_LAST_ACTIVE = "ACC_ACT_TIME";
 
     public final static String REDIS_SET_ACTIVE_ACCOUNTS = APP_NAME + "_ACTIVE_ACCOUNTS";
+    public final static String REDIS_SET_ACTIVE_PAGES = APP_NAME + "_ACTIVE_PAGES";
+    public final static String REDIS_SET_ACTIVE_FEEDS = APP_NAME + "_ACTIVE_FEEDS";
 }

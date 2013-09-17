@@ -5,7 +5,7 @@ import play.GlobalSettings;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
 import actors.FeedDbTableActor;
-import actors.FeedStatsActor;
+import actors.UpdateActivePagesActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 
@@ -25,7 +25,7 @@ public class Global extends GlobalSettings {
                         Duration.create(300, TimeUnit.SECONDS), feedDbTableACtor, "",
                         Akka.system().dispatcher());
 
-        ActorRef feedStatsActor = Akka.system().actorOf(new Props(FeedStatsActor.class));
+        ActorRef feedStatsActor = Akka.system().actorOf(new Props(UpdateActivePagesActor.class));
         Akka.system()
                 .scheduler()
                 .schedule(Duration.create(10, TimeUnit.SECONDS),
