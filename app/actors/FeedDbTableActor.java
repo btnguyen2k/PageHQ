@@ -7,7 +7,6 @@ import javax.sql.DataSource;
 
 import play.db.DB;
 import utils.Utils;
-import akka.actor.UntypedActor;
 import bo.MyPagesDao;
 
 /**
@@ -15,12 +14,12 @@ import bo.MyPagesDao;
  * 
  * @author Thanh Nguyen
  */
-public class FeedDbTableActor extends UntypedActor {
+public class FeedDbTableActor extends BaseScheduledActor {
 
     private final static String SQL = "CREATE TABLE IF NOT EXISTS {0} LIKE mypages_master_feed";
 
     @Override
-    public void onReceive(Object msg) throws Exception {
+    protected void internalOnReceive(Object msg) throws Exception {
         String shard = Utils.shardWeekly();
         String tableName = MessageFormat.format(MyPagesDao.TABLE_FEED, shard);
         DataSource ds = DB.getDataSource();

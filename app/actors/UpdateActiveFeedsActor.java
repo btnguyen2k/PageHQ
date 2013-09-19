@@ -1,12 +1,11 @@
 package actors;
 
+import java.util.Map;
 import java.util.Set;
 
 import play.Logger;
 import utils.Constants;
 import utils.JedisUtils;
-import akka.actor.UntypedActor;
-import bo.MyPagesDao;
 import bo.PageBo;
 
 /**
@@ -14,26 +13,19 @@ import bo.PageBo;
  * 
  * @author Thanh Nguyen
  */
-public class UpdateActiveFeedsActor extends UntypedActor {
+public class UpdateActiveFeedsActor extends BaseScheduledActor {
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void onReceive(Object msg) throws Exception {
-        Set<byte[]> activeAccounts = JedisUtils.setMembers(Constants.REDIS_SET_ACTIVE_ACCOUNTS);
-        int num = activeAccounts != null ? activeAccounts.size() : 0;
-        Logger.debug("Num active accounts: " + num);
+    protected void internalOnReceive(Object msg) throws Exception {
+        Set<byte[]> activePages = JedisUtils.setPop(Constants.REDIS_SET_ACTIVE_PAGES, 10);
+        int num = activePages != null ? activePages.size() : 0;
+        Logger.debug("Num active pages: " + num);
         if (num > 0) {
-            for (byte[] data : activeAccounts) {
-                String account = JedisUtils.deserializes(data, String.class);
-                Logger.debug("\t" + account);
-                PageBo[] pages = MyPagesDao.getPages(account);
-                if (pages != null) {
-                    Logger.debug("\t" + pages.length);
-                    for (PageBo page : pages) {
-                        byte[] temp = JedisUtils.serialize(page.getId());
-                        JedisUtils.setAdd(Constants.REDIS_SET_ACTIVE_PAGES, temp);
-                    }
-                }
-
+            for (byte[] rawData : activePages) {
+                Map<String, Object> data = JedisUtils.deserializes(rawData, Map.class);
+                PageBo page = new PageBo().fromMap(data);
+                Logger.debug("\t" + activePages);
                 // String appAccessToken =
                 // Play.application().configuration().getString("fb.appToken");
                 // Facebook facebook =

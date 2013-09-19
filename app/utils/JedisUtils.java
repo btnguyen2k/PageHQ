@@ -1,6 +1,7 @@
 package utils;
 
 import java.io.UnsupportedEncodingException;
+import java.util.HashSet;
 import java.util.Set;
 
 import redis.clients.jedis.Jedis;
@@ -252,6 +253,24 @@ public class JedisUtils {
     }
 
     /**
+     * See {@link http://redis.io/commands/srem}.
+     * 
+     * @param setName
+     * @param values
+     * @return
+     */
+    public static long setRemove(String setName, byte[]... values) {
+        JedisPool pool = play.Play.application().plugin(RedisPlugin.class).jedisPool();
+        Jedis jedis = pool.getResource();
+        try {
+            byte[] key = SafeEncoder.encode(setName);
+            return jedis.srem(key, values);
+        } finally {
+            pool.returnResource(jedis);
+        }
+    }
+
+    /**
      * See {@link http://redis.io/commands/spop}.
      * 
      * @param setName
@@ -266,6 +285,24 @@ public class JedisUtils {
         } finally {
             pool.returnResource(jedis);
         }
+    }
+
+    /**
+     * See {@link http://redis.io/commands/spop}.
+     * 
+     * @param setName
+     * @param numItems
+     * @return
+     */
+    public static Set<byte[]> setPop(String setName, int numItems) {
+        Set<byte[]> result = new HashSet<byte[]>();
+        for (int i = 0; i < numItems; i++) {
+            byte[] item = setPop(setName);
+            if (item != null) {
+                result.add(item);
+            }
+        }
+        return result;
     }
 
     /*------------------------------Sets------------------------------*/
