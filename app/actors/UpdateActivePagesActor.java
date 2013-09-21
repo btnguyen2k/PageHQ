@@ -22,7 +22,7 @@ public class UpdateActivePagesActor extends BaseScheduledActor {
         Logger.debug("Num active accounts: " + num);
         if (num > 0) {
             for (byte[] data : activeAccounts) {
-                JedisUtils.setRemove(Constants.REDIS_SET_ACTIVE_ACCOUNTS, data);
+                //JedisUtils.setRemove(Constants.REDIS_SET_ACTIVE_ACCOUNTS, data);
 
                 String account = JedisUtils.deserializes(data, String.class);
                 Logger.debug("\t" + account);

@@ -43,16 +43,14 @@ public class FbAuthAction extends Action.Simple {
             fbAccessTokenTime = 0;
         }
 
-        if (fbAccessTokenTimeExpiry > 0) {
+        FacebookProfile fbProfile = null;
+        if (fbAccessTokenTimeExpiry < 30
+                || fbAccessTokenTime + 30 < System.currentTimeMillis() / 1000) {
             // store/update FB_ACCESS_TOKEN_TIME
             int temp = (int) (System.currentTimeMillis() / 1000);
             SessionUtils.setSession(Constants.SESSION_FB_ACCESS_TOKEN_TIME, temp,
                     fbAccessTokenTimeExpiry + 1);
-        }
 
-        FacebookProfile fbProfile = null;
-        if (fbAccessTokenTimeExpiry < 30
-                || fbAccessTokenTime + fbAccessTokenTimeExpiry < System.currentTimeMillis() / 1000) {
             // recheck FB Access Token
             Cookie cookieFbAccessToken = null;
             try {

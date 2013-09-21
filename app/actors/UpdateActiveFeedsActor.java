@@ -23,9 +23,11 @@ public class UpdateActiveFeedsActor extends BaseScheduledActor {
         Logger.debug("Num active pages: " + num);
         if (num > 0) {
             for (byte[] rawData : activePages) {
+                JedisUtils.setAdd(Constants.REDIS_SET_ACTIVE_PAGES, rawData);
+
                 Map<String, Object> data = JedisUtils.deserializes(rawData, Map.class);
                 PageBo page = new PageBo().fromMap(data);
-                Logger.debug("\t" + activePages);
+                Logger.debug("\t" + data);
                 // String appAccessToken =
                 // Play.application().configuration().getString("fb.appToken");
                 // Facebook facebook =
