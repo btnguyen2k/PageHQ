@@ -17,7 +17,8 @@ object ApplicationBuild extends Build {
     "com.typesafe" %% "play-plugins-redis" % "2.1.1",
     
     javaCore,
-    javaJdbc
+    javaJdbc,
+    cache
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
