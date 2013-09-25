@@ -11,9 +11,7 @@ import akka.actor.Props;
 import akka.actor.Scheduler;
 
 public class AkkaUtils {
-    
-    private static Scheduler scheduler = Akka.system().scheduler();
-    
+
     /**
      * Schedules a job.
      * 
@@ -26,11 +24,13 @@ public class AkkaUtils {
     public static void schedule(Class<? extends BaseScheduledActor> actorClass, long initialDelay,
             TimeUnit initialDelayTimeUnit, long repeatedDelay, TimeUnit repeatedDelayTimeUnit) {
         ActorRef actorRef = Akka.system().actorOf(new Props(actorClass));
-        FiniteDuration initialDuration = Duration.create(initialDelay, initialDelayTimeUnit);
-        FiniteDuration repeatedDuration = Duration.create(repeatedDelay, repeatedDelayTimeUnit);
+        FiniteDuration initialDuration = initialDelay != 0 ? Duration.create(initialDelay,
+                initialDelayTimeUnit) : Duration.Zero();
+        FiniteDuration repeatedDuration = repeatedDelay != 0 ? Duration.create(repeatedDelay,
+                repeatedDelayTimeUnit) : Duration.Zero();
         Akka.system()
                 .scheduler()
                 .schedule(initialDuration, repeatedDuration, actorRef, "",
-                        Akka.system().dispatcher());
+                        Akka.system().dispatcher(), null);
     }
 }
