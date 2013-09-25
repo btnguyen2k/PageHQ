@@ -8,8 +8,12 @@ import scala.concurrent.duration.FiniteDuration;
 import actors.BaseScheduledActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import akka.actor.Scheduler;
 
 public class AkkaUtils {
+    
+    private static Scheduler scheduler = Akka.system().scheduler();
+    
     /**
      * Schedules a job.
      * 
