@@ -9,6 +9,8 @@ public class Constants {
 
     public final static String APP_NAME = "MYPAGES";
 
+    public final static String APPCONF_FB_APP_TOKEN = "fb.appToken";
+
     public final static String COOKIE_FB_ACCESS_TOKEN = "FB_ACCESS_TOKEN";
     public final static String COOKIE_FB_ACCESS_TOKEN_EXPIRY = "FB_ACCESS_TOKEN_EXPIRY";
 

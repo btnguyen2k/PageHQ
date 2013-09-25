@@ -1,11 +1,15 @@
 package actors;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import play.Logger;
 import utils.Constants;
 import utils.JedisUtils;
+import utils.Utils;
+import bo.FeedBo;
+import bo.MyPagesDao;
 import bo.PageBo;
 
 /**
@@ -23,19 +27,21 @@ public class UpdateActiveFeedsActor extends BaseScheduledActor {
         Logger.debug("Num active pages: " + num);
         if (num > 0) {
             for (byte[] rawData : activePages) {
-                JedisUtils.setAdd(Constants.REDIS_SET_ACTIVE_PAGES, rawData);
-
                 Map<String, Object> data = JedisUtils.deserializes(rawData, Map.class);
                 PageBo page = new PageBo().fromMap(data);
-                Logger.debug("\t" + data);
-                // String appAccessToken =
-                // Play.application().configuration().getString("fb.appToken");
-                // Facebook facebook =
-                // FacebookUtils.getFacebook(appAccessToken);
-                // Map<String, Object> obj =
-                // facebook.fetchObject("563260077046816_601945469844943",
-                // Map.class);
-                // System.out.println(obj.getClass() + ": " + obj);
+                Set<FeedBo> activeFeeds = new HashSet<FeedBo>();
+                for (int i = -2; i <= 0; i++) {
+                    String shardId = Utils.shardWeekly(i);
+                    Set<FeedBo> feeds = MyPagesDao.getFeedsOfPage(page.getId(), shardId);
+                    if (feeds != null) {
+                        activeFeeds.addAll(feeds);
+                    }
+                }
+                Logger.debug("\tPage " + page.getId() + ":\t" + activeFeeds.size());
+                for (FeedBo feed : activeFeeds) {
+                    byte[] temp = JedisUtils.serialize(feed.toMap());
+                    JedisUtils.setAdd(Constants.REDIS_SET_ACTIVE_FEEDS, temp);
+                }
             }
         }
     }

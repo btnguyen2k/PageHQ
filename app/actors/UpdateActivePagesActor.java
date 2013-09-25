@@ -22,13 +22,14 @@ public class UpdateActivePagesActor extends BaseScheduledActor {
         Logger.debug("Num active accounts: " + num);
         if (num > 0) {
             for (byte[] data : activeAccounts) {
-                //JedisUtils.setRemove(Constants.REDIS_SET_ACTIVE_ACCOUNTS, data);
+                // TODO uncomment me!
+                // JedisUtils.setRemove(Constants.REDIS_SET_ACTIVE_ACCOUNTS,
+                // data);
 
                 String account = JedisUtils.deserializes(data, String.class);
                 Logger.debug("\t" + account);
                 PageBo[] pages = MyPagesDao.getPages(account);
                 if (pages != null) {
-                    Logger.debug("\t" + pages.length);
                     for (PageBo page : pages) {
                         byte[] temp = JedisUtils.serialize(page.toMap());
                         JedisUtils.setAdd(Constants.REDIS_SET_ACTIVE_PAGES, temp);
@@ -37,5 +38,4 @@ public class UpdateActivePagesActor extends BaseScheduledActor {
             }
         }
     }
-
 }

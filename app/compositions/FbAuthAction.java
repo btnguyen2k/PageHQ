@@ -1,16 +1,14 @@
 package compositions;
 
-import java.util.concurrent.Callable;
-
 import org.springframework.social.facebook.api.FacebookProfile;
 
 import play.Logger;
-import play.mvc.SimpleResult;
-import play.libs.Akka;
+import play.libs.F.Function0;
 import play.libs.F.Promise;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.Cookie;
+import play.mvc.SimpleResult;
 import utils.Constants;
 import utils.CookieUtils;
 import utils.FacebookUtils;
@@ -73,11 +71,11 @@ public class FbAuthAction extends Action.Simple {
                     Logger.debug("FbAccessToken expires?");
                 } else {
                     Logger.debug("Error: cannot get FB profile!");
-                }                
-                Promise<SimpleResult> result = Akka.future(new Callable<SimpleResult>() {
-                    public SimpleResult call() {
+                }
+                Promise<SimpleResult> result = Promise.promise(new Function0<SimpleResult>() {
+                    public SimpleResult apply() {
                         return redirect("/");
-                      }
+                    }
                 });
                 return result;
             } else {

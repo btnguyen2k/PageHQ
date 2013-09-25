@@ -6,6 +6,7 @@ import utils.AkkaUtils;
 import actors.FeedDbTableActor;
 import actors.UpdateActiveFeedsActor;
 import actors.UpdateActivePagesActor;
+import actors.UpdateFeedStatsActor;
 
 import com.github.ddth.plommon.bo.BaseDao;
 
@@ -18,10 +19,14 @@ public class Global extends GlobalSettings {
         super.onStart(app);
 
         AkkaUtils.schedule(FeedDbTableActor.class, 10, TimeUnit.SECONDS, 300, TimeUnit.SECONDS);
+
         AkkaUtils
                 .schedule(UpdateActivePagesActor.class, 10, TimeUnit.SECONDS, 10, TimeUnit.SECONDS);
+
         AkkaUtils
                 .schedule(UpdateActiveFeedsActor.class, 10, TimeUnit.SECONDS, 10, TimeUnit.SECONDS);
+
+        AkkaUtils.schedule(UpdateFeedStatsActor.class, 10, TimeUnit.SECONDS, 10, TimeUnit.SECONDS);
     }
 
     @Override

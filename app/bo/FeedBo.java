@@ -133,6 +133,26 @@ public class FeedBo extends BaseBo {
      * {@inheritDoc}
      */
     @Override
+    public FeedBo fromMap(Map<String, Object> data) {
+        super.fromMap(data);
+        setMetaInfo(getMetaInfo());
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FeedBo fromJson(String jsonData) {
+        super.fromJson(jsonData);
+        setMetaInfo(getMetaInfo());
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public int hashCode() {
         HashCodeBuilder hcb = new HashCodeBuilder(19, 81);
         hcb.append(getId()).append(getFeedId()).append(getFeedType()).append(getUserEmail())

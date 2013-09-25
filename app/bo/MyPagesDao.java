@@ -4,6 +4,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -253,6 +254,31 @@ public class MyPagesDao extends BaseDao {
     }
 
     /**
+     * Updates an existing FB feed.
+     * 
+     * @param feed
+     */
+    public static FeedBo updateFeed(FeedBo feed) {
+        String fid = feed.getId();
+        String[] tokens = fid.split("_", 2);
+        String shardId = tokens[0];
+        String tableName = MessageFormat.format(TABLE_FEED, shardId);
+
+        final String SQL = "UPDATE IGNORE {0} SET fnum_likes=?,fnum_shares=?,fnum_comments=? WHERE fid=?";
+        Integer numLikes = feed.getNumLikes();
+        Integer numComments = feed.getNumComments();
+        Integer numShares = feed.getNumShares();
+        JdbcTemplate jdbcTemplate = jdbcTemplate();
+        jdbcTemplate.update(MessageFormat.format(SQL, tableName), numLikes, numShares, numComments,
+                fid);
+        Map<String, Object> dbRow = feed.toMap();
+        final String CACHE_KEY = cacheKeyFeed(fid);
+        putToCache(CACHE_KEY, dbRow);
+        // removeFromCache(CACHE_KEY);
+        return feed;
+    }
+
+    /**
      * Loads a FB feed.
      * 
      * @param feedId
@@ -260,6 +286,13 @@ public class MyPagesDao extends BaseDao {
      */
     @SuppressWarnings("unchecked")
     public static FeedBo getFeed(String id) {
+        if (StringUtils.isBlank(id)) {
+            return null;
+        }
+        String[] tokens = id.split("_", 2);
+        String shardId = tokens[0];
+        String tableName = MessageFormat.format(TABLE_FEED, shardId);
+
         final String CACHE_KEY = cacheKeyFeed(id);
         Map<String, Object> dbRow = getFromCache(CACHE_KEY, Map.class);
         if (dbRow == null) {
@@ -269,7 +302,7 @@ public class MyPagesDao extends BaseDao {
                     + "FROM {0} WHERE fid=?";
             JdbcTemplate jdbcTemplate = jdbcTemplate();
             List<Map<String, Object>> dbResult = jdbcTemplate.queryForList(MessageFormat.format(
-                    SQL, TABLE_FEED, FeedBo.COL_ID, FeedBo.COL_FEED_ID, FeedBo.COL_FEED_TYPE,
+                    SQL, tableName, FeedBo.COL_ID, FeedBo.COL_FEED_ID, FeedBo.COL_FEED_TYPE,
                     FeedBo.COL_FEED_METAINFO, FeedBo.COL_USER_EMAIL, FeedBo.COL_PAGE_ID,
                     FeedBo.COL_TIMESTAMP_CREATE, FeedBo.COL_NUM_LIKES, FeedBo.COL_NUM_SHARES,
                     FeedBo.COL_NUM_COMMENTS), new Object[] { id });
@@ -279,8 +312,30 @@ public class MyPagesDao extends BaseDao {
         return dbRow != null ? (FeedBo) new FeedBo().fromMap(dbRow) : null;
     }
 
-    public static Set<FeedBo> getFeeds(String userEmail, String shardId) {
-        return null;
+    /**
+     * Gets feeds of a page.
+     * 
+     * @param pageId
+     * @param shardId
+     * @return
+     */
+    public static Set<FeedBo> getFeedsOfPage(String pageId, String shardId) {
+        String tableName = MessageFormat.format(TABLE_FEED, shardId);
+        String SQL = "SELECT fid AS {1} FROM {0} WHERE fpage_id=?";
+        JdbcTemplate jdbcTemplate = jdbcTemplate();
+        List<Map<String, Object>> dbResult = jdbcTemplate.queryForList(
+                MessageFormat.format(SQL, tableName, FeedBo.COL_FEED_ID), new Object[] { pageId });
+        Set<FeedBo> result = new HashSet<FeedBo>();
+        if (dbResult != null) {
+            for (Map<String, Object> row : dbResult) {
+                String feedId = DPathUtils.getValue(row, FeedBo.COL_FEED_ID, String.class);
+                FeedBo feed = getFeed(feedId);
+                if (feed != null) {
+                    result.add(feed);
+                }
+            }
+        }
+        return result;
     }
 
     /*--------------------------------------------------------------------------------*/

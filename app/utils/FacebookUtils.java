@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import models.FbPage;
 
@@ -28,6 +29,20 @@ import com.github.ddth.plommon.utils.SessionUtils;
 public class FacebookUtils {
 
     private static Facebook FACEBOOK_PUBLIC = new FacebookTemplate();
+
+    /**
+     * Gets a feed's information.
+     * 
+     * @param feedId
+     * @param accessToken
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> getFeedInfo(String feedId, String accessToken) {
+        Facebook facebook = getFacebook(accessToken);
+        Map<String, Object> obj = facebook.fetchObject(feedId, Map.class);
+        return obj;
+    }
 
     /**
      * Obtains a Facebook instance associated with an access token.
