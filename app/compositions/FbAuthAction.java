@@ -1,12 +1,16 @@
 package compositions;
 
+import java.util.concurrent.Callable;
+
 import org.springframework.social.facebook.api.FacebookProfile;
 
 import play.Logger;
+import play.mvc.SimpleResult;
+import play.libs.Akka;
+import play.libs.F.Promise;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.Cookie;
-import play.mvc.Result;
 import utils.Constants;
 import utils.CookieUtils;
 import utils.FacebookUtils;
@@ -17,7 +21,7 @@ import bo.MyPagesDao;
 import com.github.ddth.plommon.utils.SessionUtils;
 
 public class FbAuthAction extends Action.Simple {
-    public Result call(Http.Context ctx) throws Throwable {
+    public Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
         /*
          * FB_ACCESS_EXPIRY = get from cookie
          * 
@@ -43,16 +47,14 @@ public class FbAuthAction extends Action.Simple {
             fbAccessTokenTime = 0;
         }
 
-        if (fbAccessTokenTimeExpiry > 0) {
+        FacebookProfile fbProfile = null;
+        if (fbAccessTokenTimeExpiry < 30
+                || fbAccessTokenTime + 30 < System.currentTimeMillis() / 1000) {
             // store/update FB_ACCESS_TOKEN_TIME
             int temp = (int) (System.currentTimeMillis() / 1000);
             SessionUtils.setSession(Constants.SESSION_FB_ACCESS_TOKEN_TIME, temp,
                     fbAccessTokenTimeExpiry + 1);
-        }
 
-        FacebookProfile fbProfile = null;
-        if (fbAccessTokenTimeExpiry < 30
-                || fbAccessTokenTime + fbAccessTokenTimeExpiry < System.currentTimeMillis() / 1000) {
             // recheck FB Access Token
             Cookie cookieFbAccessToken = null;
             try {
@@ -71,8 +73,13 @@ public class FbAuthAction extends Action.Simple {
                     Logger.debug("FbAccessToken expires?");
                 } else {
                     Logger.debug("Error: cannot get FB profile!");
-                }
-                return redirect("/");
+                }                
+                Promise<SimpleResult> result = Akka.future(new Callable<SimpleResult>() {
+                    public SimpleResult call() {
+                        return redirect("/");
+                      }
+                });
+                return result;
             } else {
                 String email = fbProfile.getEmail();
                 AccountBo account = MyPagesDao.getAccount(email);
