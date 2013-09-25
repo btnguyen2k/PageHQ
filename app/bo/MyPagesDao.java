@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -252,7 +253,7 @@ public class MyPagesDao extends BaseDao {
     }
 
     /**
-     * id Loads a FB feed.
+     * Loads a FB feed.
      * 
      * @param feedId
      * @return
@@ -277,5 +278,10 @@ public class MyPagesDao extends BaseDao {
         }
         return dbRow != null ? (FeedBo) new FeedBo().fromMap(dbRow) : null;
     }
+
+    public static Set<FeedBo> getFeeds(String userEmail, String shardId) {
+        return null;
+    }
+
     /*--------------------------------------------------------------------------------*/
 }

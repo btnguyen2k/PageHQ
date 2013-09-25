@@ -2,12 +2,10 @@ import java.util.concurrent.TimeUnit;
 
 import play.Application;
 import play.GlobalSettings;
-import play.libs.Akka;
-import scala.concurrent.duration.Duration;
+import utils.AkkaUtils;
 import actors.FeedDbTableActor;
+import actors.UpdateActiveFeedsActor;
 import actors.UpdateActivePagesActor;
-import akka.actor.ActorRef;
-import akka.actor.Props;
 
 import com.github.ddth.plommon.bo.BaseDao;
 
@@ -18,19 +16,12 @@ public class Global extends GlobalSettings {
         BaseDao.init();
 
         super.onStart(app);
-        ActorRef feedDbTableACtor = Akka.system().actorOf(new Props(FeedDbTableActor.class));
-        Akka.system()
-                .scheduler()
-                .schedule(Duration.create(10, TimeUnit.SECONDS),
-                        Duration.create(300, TimeUnit.SECONDS), feedDbTableACtor, "",
-                        Akka.system().dispatcher());
 
-        ActorRef feedStatsActor = Akka.system().actorOf(new Props(UpdateActivePagesActor.class));
-        Akka.system()
-                .scheduler()
-                .schedule(Duration.create(10, TimeUnit.SECONDS),
-                        Duration.create(10, TimeUnit.SECONDS), feedStatsActor, "",
-                        Akka.system().dispatcher());
+        AkkaUtils.schedule(FeedDbTableActor.class, 10, TimeUnit.SECONDS, 300, TimeUnit.SECONDS);
+        AkkaUtils
+                .schedule(UpdateActivePagesActor.class, 10, TimeUnit.SECONDS, 10, TimeUnit.SECONDS);
+        AkkaUtils
+                .schedule(UpdateActiveFeedsActor.class, 10, TimeUnit.SECONDS, 10, TimeUnit.SECONDS);
     }
 
     @Override
