@@ -8,6 +8,8 @@ import actors.UpdateActiveFeedsActor;
 import actors.UpdateActivePagesActor;
 import actors.UpdateFeedStatsActor;
 
+import com.github.ddth.plommon.bo.BaseDao;
+
 public class Global extends GlobalSettings {
 
     @Override

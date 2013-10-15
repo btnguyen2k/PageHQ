@@ -12,10 +12,9 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     // Add your project dependencies here,
     "mysql" % "mysql-connector-java" % "5.1.26",
-    "com.github.ddth" %% "play-module-plommon" % "0.3.0-SNAPSHOT",
     "com.google.guava" % "guava" % "14.0",
+    "com.github.ddth" %% "play-module-plommon" % "0.3.2-SNAPSHOT",
     "com.typesafe" %% "play-plugins-redis" % "2.1.1",
-    
     javaCore,
     javaJdbc,
     cache
