@@ -11,15 +11,14 @@ import models.FbPage;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.social.facebook.api.Account;
 import org.springframework.social.facebook.api.Facebook;
-import org.springframework.social.facebook.api.FacebookProfile;
 import org.springframework.social.facebook.api.PagedList;
-import org.springframework.social.facebook.api.impl.FacebookTemplate;
 
 import play.Logger;
 import play.mvc.Controller;
 
 import com.github.ddth.plommon.utils.JsonUtils;
 import com.github.ddth.plommon.utils.SessionUtils;
+import com.github.ddth.springsocialhelper.FacebookHelper;
 
 /**
  * Facebook-related utilities.
@@ -27,8 +26,6 @@ import com.github.ddth.plommon.utils.SessionUtils;
  * @author Thanh.Nguyen <btnguyen2k@gmail.com>
  */
 public class FacebookUtils {
-
-    private static Facebook FACEBOOK_PUBLIC = new FacebookTemplate();
 
     /**
      * Gets a feed's information.
@@ -39,19 +36,9 @@ public class FacebookUtils {
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> getFeedInfo(String feedId, String accessToken) {
-        Facebook facebook = getFacebook(accessToken);
+        Facebook facebook = FacebookHelper.getFacebook(accessToken);
         Map<String, Object> obj = facebook.fetchObject(feedId, Map.class);
         return obj;
-    }
-
-    /**
-     * Obtains a Facebook instance associated with an access token.
-     * 
-     * @param fbAccessToken
-     * @return
-     */
-    public static Facebook getFacebook(String fbAccessToken) {
-        return fbAccessToken != null ? new FacebookTemplate(fbAccessToken) : FACEBOOK_PUBLIC;
     }
 
     private static boolean validateFbAccessToken(String fbAccessToken) {
@@ -61,20 +48,6 @@ public class FacebookUtils {
         }
         Controller.session(Constants.SESSION_FB_ACCESS_TOKEN, fbAccessToken);
         return false;
-    }
-
-    /**
-     * Gets Facebook profile.
-     * 
-     * @param fbAccessToken
-     * @return
-     */
-    public static FacebookProfile getFbProfile(String fbAccessToken) {
-        Facebook facebook = getFacebook(fbAccessToken);
-        if (facebook == null) {
-            return null;
-        }
-        return facebook.userOperations().getUserProfile();
     }
 
     /**
@@ -115,7 +88,7 @@ public class FacebookUtils {
             }
         }
         if (result == null) {
-            Facebook facebook = getFacebook(fbAccessToken);
+            Facebook facebook = FacebookHelper.getFacebook(fbAccessToken);
             if (facebook == null) {
                 return null;
             }

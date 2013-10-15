@@ -8,9 +8,9 @@ import play.mvc.Result;
 import play.mvc.Results;
 import utils.Constants;
 import utils.CookieUtils;
-import utils.FacebookUtils;
 import bo.MyPagesDao;
 
+import com.github.ddth.springsocialhelper.FacebookHelper;
 import compositions.FbAuth;
 
 public class ControlPanel extends Controller {
@@ -22,8 +22,8 @@ public class ControlPanel extends Controller {
     public static Result index() {
         Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
                 Constants.COOKIE_FB_ACCESS_TOKEN);
-        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
-                .getFbProfile(cookieFbAccessToken.value()) : null;
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookHelper
+                .getUserProfile(cookieFbAccessToken.value()) : null;
         String email = fbProfile != null ? fbProfile.getEmail() : null;
         if (email != null) {
             MyPagesDao.createAccount(email);

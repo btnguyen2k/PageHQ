@@ -11,12 +11,12 @@ import play.mvc.Http.Cookie;
 import play.mvc.SimpleResult;
 import utils.Constants;
 import utils.CookieUtils;
-import utils.FacebookUtils;
 import utils.JedisUtils;
 import bo.AccountBo;
 import bo.MyPagesDao;
 
 import com.github.ddth.plommon.utils.SessionUtils;
+import com.github.ddth.springsocialhelper.FacebookHelper;
 
 public class FbAuthAction extends Action.Simple {
     public Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
@@ -61,8 +61,8 @@ public class FbAuthAction extends Action.Simple {
                 if (cookieFbAccessToken == null) {
                     Logger.debug("No FbAccessToken cookie.");
                 }
-                fbProfile = cookieFbAccessToken != null ? FacebookUtils
-                        .getFbProfile(cookieFbAccessToken.value()) : null;
+                fbProfile = cookieFbAccessToken != null ? FacebookHelper
+                        .getUserProfile(cookieFbAccessToken.value()) : null;
             } catch (Exception e) {
                 fbProfile = null;
             }

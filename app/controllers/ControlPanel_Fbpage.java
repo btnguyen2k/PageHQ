@@ -10,8 +10,6 @@ import models.FbPage;
 import models.FbPostText;
 
 import org.apache.commons.lang3.StringUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.social.facebook.api.Facebook;
@@ -35,8 +33,11 @@ import bo.FeedBo;
 import bo.MyPagesDao;
 import bo.PageBo;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.ddth.plommon.utils.DPathUtils;
 import com.github.ddth.plommon.utils.JsonUtils;
+import com.github.ddth.springsocialhelper.FacebookHelper;
 import compositions.FbAuth;
 
 public class ControlPanel_Fbpage extends Controller {
@@ -52,8 +53,8 @@ public class ControlPanel_Fbpage extends Controller {
                 Constants.COOKIE_FB_ACCESS_TOKEN);
         List<FbPage> fbPages = cookieFbAccessToken != null ? FacebookUtils
                 .getFbPages(cookieFbAccessToken.value()) : null;
-        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
-                .getFbProfile(cookieFbAccessToken.value()) : null;
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookHelper
+                .getUserProfile(cookieFbAccessToken.value()) : null;
         if (fbPages != null) {
             String email = fbProfile.getEmail();
             for (FbPage fbPage : fbPages) {
@@ -79,8 +80,8 @@ public class ControlPanel_Fbpage extends Controller {
     public static Result edit(String pageId) {
         Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
                 Constants.COOKIE_FB_ACCESS_TOKEN);
-        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
-                .getFbProfile(cookieFbAccessToken.value()) : null;
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookHelper
+                .getUserProfile(cookieFbAccessToken.value()) : null;
         String email = fbProfile != null ? fbProfile.getEmail() : null;
         PageBo page = email != null ? MyPagesDao.getPage(pageId, email) : null;
         if (page == null) {
@@ -100,8 +101,8 @@ public class ControlPanel_Fbpage extends Controller {
 
         Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
                 Constants.COOKIE_FB_ACCESS_TOKEN);
-        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
-                .getFbProfile(cookieFbAccessToken.value()) : null;
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookHelper
+                .getUserProfile(cookieFbAccessToken.value()) : null;
         String email = fbProfile != null ? fbProfile.getEmail() : null;
         PageBo page = email != null ? MyPagesDao.getPage(pageId, email) : null;
         if (page == null) {
@@ -128,8 +129,8 @@ public class ControlPanel_Fbpage extends Controller {
     public static Result post(String pageId) {
         Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
                 Constants.COOKIE_FB_ACCESS_TOKEN);
-        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookUtils
-                .getFbProfile(cookieFbAccessToken.value()) : null;
+        FacebookProfile fbProfile = cookieFbAccessToken != null ? FacebookHelper
+                .getUserProfile(cookieFbAccessToken.value()) : null;
         String email = fbProfile != null ? fbProfile.getEmail() : null;
         if (StringUtils.isBlank(email)) {
             return Results.badRequest(views.html.Cp.fbpage_post.render(null, null, null));
@@ -184,7 +185,7 @@ public class ControlPanel_Fbpage extends Controller {
                 String fbAccessToken = cookieFbAccessToken != null ? cookieFbAccessToken.value()
                         : null;
 
-                Facebook facebook = FacebookUtils.getFacebook(fbAccessToken);
+                Facebook facebook = FacebookHelper.getFacebook(fbAccessToken);
                 FacebookProfile fbProfile = fbAccessToken != null ? facebook.userOperations()
                         .getUserProfile() : null;
                 String email = fbProfile != null ? fbProfile.getEmail() : null;
@@ -249,8 +250,8 @@ public class ControlPanel_Fbpage extends Controller {
             Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
                     Constants.COOKIE_FB_ACCESS_TOKEN);
             String fbAccessToken = cookieFbAccessToken != null ? cookieFbAccessToken.value() : null;
-            FacebookProfile fbProfile = fbAccessToken != null ? FacebookUtils
-                    .getFbProfile(cookieFbAccessToken.value()) : null;
+            FacebookProfile fbProfile = fbAccessToken != null ? FacebookHelper
+                    .getUserProfile(cookieFbAccessToken.value()) : null;
             String email = fbProfile != null ? fbProfile.getEmail() : null;
             FbPage fbPage = fbAccessToken != null ? FacebookUtils.getFbPage(
                     cookieFbAccessToken.value(), pageId) : null;
@@ -272,7 +273,7 @@ public class ControlPanel_Fbpage extends Controller {
             }
             FacebookLink facebookLink = new FacebookLink(url.trim(), null,
                     urlCaption != null ? urlCaption.trim() : null, null);
-            Facebook facebook = FacebookUtils.getFacebook(fbAccessToken);
+            Facebook facebook = FacebookHelper.getFacebook(fbAccessToken);
             String feedId = facebook.pageOperations().post(pageId, urlDesc.trim() + signature,
                     facebookLink);
             if (!StringUtils.isBlank(feedId)) {
@@ -312,8 +313,8 @@ public class ControlPanel_Fbpage extends Controller {
             Cookie cookieFbAccessToken = CookieUtils.getCookie(request(),
                     Constants.COOKIE_FB_ACCESS_TOKEN);
             String fbAccessToken = cookieFbAccessToken != null ? cookieFbAccessToken.value() : null;
-            FacebookProfile fbProfile = fbAccessToken != null ? FacebookUtils
-                    .getFbProfile(cookieFbAccessToken.value()) : null;
+            FacebookProfile fbProfile = fbAccessToken != null ? FacebookHelper
+                    .getUserProfile(cookieFbAccessToken.value()) : null;
             String email = fbProfile != null ? fbProfile.getEmail() : null;
             FbPage fbPage = fbAccessToken != null ? FacebookUtils.getFbPage(
                     cookieFbAccessToken.value(), pageId) : null;
@@ -330,7 +331,7 @@ public class ControlPanel_Fbpage extends Controller {
             } else {
                 signature = "";
             }
-            Facebook facebook = FacebookUtils.getFacebook(fbAccessToken);
+            Facebook facebook = FacebookHelper.getFacebook(fbAccessToken);
             String feedId = facebook.pageOperations().post(pageId, text + signature);
             if (!StringUtils.isBlank(feedId)) {
                 Map<String, Object> metaInfo = new HashMap<String, Object>();
