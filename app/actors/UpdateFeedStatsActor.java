@@ -9,12 +9,12 @@ import org.apache.commons.lang3.ObjectUtils;
 import play.Logger;
 import play.Play;
 import utils.Constants;
-import utils.FacebookUtils;
 import utils.JedisUtils;
 import bo.FeedBo;
 import bo.MyPagesDao;
 
 import com.github.ddth.plommon.utils.DPathUtils;
+import com.github.ddth.springsocialhelper.FacebookHelper;
 
 /**
  * Akka actor: update active feeds' stats (num likes, shares, comments)
@@ -35,8 +35,8 @@ public class UpdateFeedStatsActor extends BaseScheduledActor {
                 FeedBo feed = new FeedBo().fromMap(data);
                 String appAccessToken = Play.application().configuration()
                         .getString(Constants.APPCONF_FB_APP_TOKEN);
-                Map<String, Object> obj = FacebookUtils.getFeedInfo(feed.getFeedId(),
-                        appAccessToken);
+                Map<String, Object> obj = FacebookHelper.getFeedInfo(appAccessToken,
+                        feed.getFeedId());
                 Integer numShares = DPathUtils.getValue(obj, "shares.count", Integer.class);
                 List<Object> likes = DPathUtils.getValue(obj, "likes.data", List.class);
                 Integer numLikes = likes != null ? likes.size() : null;

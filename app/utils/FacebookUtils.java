@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 import models.FbPage;
 
@@ -26,20 +25,6 @@ import com.github.ddth.springsocialhelper.FacebookHelper;
  * @author Thanh.Nguyen <btnguyen2k@gmail.com>
  */
 public class FacebookUtils {
-
-    /**
-     * Gets a feed's information.
-     * 
-     * @param feedId
-     * @param accessToken
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> getFeedInfo(String feedId, String accessToken) {
-        Facebook facebook = FacebookHelper.getFacebook(accessToken);
-        Map<String, Object> obj = facebook.fetchObject(feedId, Map.class);
-        return obj;
-    }
 
     private static boolean validateFbAccessToken(String fbAccessToken) {
         String cachedFbAccessToken = Controller.session(Constants.SESSION_FB_ACCESS_TOKEN);
